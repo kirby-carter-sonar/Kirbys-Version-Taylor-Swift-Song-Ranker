@@ -1,0 +1,53 @@
+:root{
+	--bg: #fff7fb;
+	--card: #fff;
+	--accent: #ff67a8;
+	--muted: #7b8094;
+	--glow: rgba(255,103,168,0.12);
+}
+
+*{box-sizing:border-box}
+body{font-family:Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; margin:0; background:linear-gradient(180deg,#fff6fb 0%, #fff0f6 100%); color:#101827}
+.container{max-width:820px;margin:40px auto;padding:20px}
+.header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+h1{margin:0 0 6px;font-size:20px}
+.brand{font-size:28px}
+.lead{margin:0 0 14px;color:var(--muted)}
+
+/* sticker decorations */
+.stickers{position:fixed;right:18px;top:120px;display:flex;flex-direction:column;gap:12px;z-index:40}
+.sticker{width:56px;height:56px;filter:drop-shadow(0 6px 12px rgba(0,0,0,0.08));transform:rotate(-6deg);transition:transform .18s ease}
+.sticker:hover{transform:rotate(0) scale(1.06)}
+.controls{display:flex;gap:10px;margin-bottom:14px;align-items:center;flex-wrap:wrap}
+button{background:linear-gradient(180deg,#fff,#fff);border:1px solid rgba(16,24,39,0.06);color:#101827;padding:8px 12px;border-radius:12px;cursor:pointer;box-shadow:0 4px 10px var(--glow);transition:transform .12s ease,box-shadow .12s ease}
+button:hover{transform:translateY(-2px);box-shadow:0 8px 20px var(--glow)}
+.import-label{background:linear-gradient(180deg,#fff,#fff);border:1px dashed rgba(16,24,39,0.06);padding:8px 12px;border-radius:12px;cursor:pointer;color:var(--muted)}
+.song-list{list-style:none;padding:6px;margin:0;border-radius:14px}
+.song-item{display:flex;align-items:center;gap:12px;padding:12px;border-radius:10px;margin:8px 0;background:linear-gradient(90deg, rgba(255,255,255,0.9), rgba(255,249,250,0.9));box-shadow:0 6px 18px rgba(15,23,42,0.06);transition:transform .12s ease,box-shadow .12s ease}
+.song-item.dragging{opacity:0.6;transform:scale(.995)}
+.song-item{cursor:pointer}
+.song-item:hover{transform:translateY(-4px);box-shadow:0 12px 30px rgba(255,103,168,0.12)}
+.song-item.selected{outline:2px solid rgba(255,103,168,0.22);background:linear-gradient(90deg,#fff7fb,#fff2f8)}
+.song-info{flex:1;min-width:0}
+.song-title{font-weight:700;font-size:15px}
+.song-meta{color:var(--muted);font-size:13px;margin-top:4px}
+.editable{background:transparent;border:0;padding:4px;border-radius:8px}
+.song-item:focus-within{outline:2px solid rgba(255,103,168,0.15)}
+.footer{margin-top:18px;color:var(--muted)}
+[data-pairwise="overlay"]{position:fixed;inset:0;background:rgba(0,0,0,0.35);display:none;align-items:center;justify-content:center;z-index:60}
+.pairwise-panel{background:var(--card);padding:20px;border-radius:14px;display:flex;gap:18px;align-items:center;max-width:860px;width:90%;box-shadow:0 20px 60px rgba(16,24,39,0.3)}
+.pair-tile{flex:1;padding:18px;border-radius:12px;background:linear-gradient(90deg,#fff,#fff9fb);text-align:center;cursor:pointer;transition:transform .12s ease,box-shadow .12s ease}
+.pair-tile:hover{transform:translateY(-6px);box-shadow:0 12px 30px rgba(16,24,39,0.12)}
+.pair-tile .song-title{font-size:20px}
+.pair-controls{display:flex;flex-direction:column;gap:10px;align-items:center}
+.pair-hint{font-size:13px;color:var(--muted)}
+.choice-flash{box-shadow:0 0 0 4px rgba(255,103,168,0.18);transform:scale(0.99)}
+
+.pair-progress-wrap{width:160px;height:10px;background:linear-gradient(90deg,#fff,#fff);border-radius:999px;overflow:hidden;border:1px solid rgba(16,24,39,0.04)}
+.pair-progress{height:100%;width:0%;background:linear-gradient(90deg,var(--accent),#ffb0d8);position:relative;transition:width .18s ease}
+.pair-progress::after{content:'';position:absolute;inset:0;background:linear-gradient(120deg,rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.18) 100%);mix-blend-mode:overlay;opacity:0.9;animation:shine 1.6s linear infinite}
+@keyframes shine{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+.pair-action{background:var(--accent);color:#fff;padding:8px 12px;border-radius:8px;border:none;cursor:pointer}
+.pair-counter{color:var(--muted)}
+[draggable="true"]{user-select:none}
+@media (max-width:640px){.container{margin:16px;padding:12px}}

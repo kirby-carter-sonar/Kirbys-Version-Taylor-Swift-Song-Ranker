@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Taylor Swift Song Ranker</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="container">
+    <header class="header">
+      <div>
+        <h1>Taylor Swift Song Ranker</h1>
+        <p class="lead">Give your favorite songs cute rankings — drag, drop, and share.</p>
+      </div>
+      <div class="brand">💖</div>
+    </header>
+
+    <div class="controls">
+      <button id="load-default">Load default</button>
+      <button id="save">Save</button>
+      <button id="pairwise">Pairwise rank</button>
+  <button id="share">Share</button>
+  <button id="export-json">Export JSON</button>
+  <button id="export-csv">Export CSV</button>
+      <label class="import-label">
+        Import
+        <input id="import-file" type="file" accept="application/json" hidden />
+      </label>
+    </div>
+
+    <ul id="song-list" class="song-list" aria-label="Song ranking"></ul>
+
+    <div class="footer">
+      <small>Tip: drag to reorder, double-click to rename, or use keyboard: focus + Up/Down to move.</small>
+    </div>
+  </main>
+
+  <!-- decorative stickers for girly-glam theme -->
+  <div class="stickers" aria-hidden="true">
+    <img class="sticker" src="stickers/sticker-heart.svg" alt="" />
+    <img class="sticker" src="stickers/sticker-star.svg" alt="" />
+    <img class="sticker" src="stickers/sticker-music.svg" alt="" />
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
