@@ -20,16 +20,33 @@
       <button id="load-default">Load default</button>
       <button id="save">Save</button>
       <button id="pairwise">Pairwise rank</button>
-  <button id="share">Share</button>
-  <button id="export-json">Export JSON</button>
-  <button id="export-csv">Export CSV</button>
+      <button id="share">Share</button>
+      <button id="export-json">Export JSON</button>
+      <button id="export-csv">Export CSV</button>
       <label class="import-label">
         Import
         <input id="import-file" type="file" accept="application/json" hidden />
       </label>
+      <div class="auto-save-indicator" id="auto-save-indicator">
+        <span class="save-status">Auto-save: ON</span>
+      </div>
     </div>
 
-    <ul id="song-list" class="song-list" aria-label="Song ranking"></ul>
+    <!-- Song List -->
+    <div class="song-list-container">
+      <h2>Your Songs</h2>
+      <ul id="song-list" class="song-list">
+        <!-- Songs will be populated here -->
+      </ul>
+    </div>
+
+    <!-- Ranked Preview -->
+    <div class="ranked-preview" style="margin-top: 20px;">
+      <h3>Current Ranking</h3>
+      <ol id="ranked-list" class="ranked-list">
+        <!-- Ranked songs will be shown here -->
+      </ol>
+    </div>
 
     <div class="footer">
       <small>Tip: drag to reorder, double-click to rename, or use keyboard: focus + Up/Down to move.</small>
@@ -41,6 +58,19 @@
     <img class="sticker" src="stickers/sticker-heart.svg" alt="" />
     <img class="sticker" src="stickers/sticker-star.svg" alt="" />
     <img class="sticker" src="stickers/sticker-music.svg" alt="" />
+  </div>
+
+  <div data-pairwise="overlay" style="display:none">
+    <div class="pairwise-panel">
+      <div class="pair-tile" id="pair-left"></div>
+      <div class="pair-controls">
+        <div class="pair-counter" id="pair-counter">Comparisons: 0</div>
+        <div class="pair-progress-wrap" id="pair-progress-wrap"><div class="pair-progress" id="pair-progress" style="width:0%" aria-valuenow="0"></div></div>
+        <div class="pair-hint" id="pair-hint">Press 1 for left, 2 for right, Esc to cancel</div>
+        <button class="pair-action" id="pair-cancel">Cancel</button>
+      </div>
+      <div class="pair-tile" id="pair-right"></div>
+    </div>
   </div>
 
   <script src="app.js"></script>
