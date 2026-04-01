@@ -167,6 +167,74 @@ export const songs = [
   { title: "The Alchemy", album: "The Tortured Poets Department", artist: "Taylor Swift" },
   { title: "Clara Bow", album: "The Tortured Poets Department", artist: "Taylor Swift" },
 
+  // Missing Reputation tracks
+  { title: "Call It What You Want", album: "Reputation", artist: "Taylor Swift" },
+  { title: "New Year's Day", album: "Reputation", artist: "Taylor Swift" },
+  { title: "So It Goes...", album: "Reputation", artist: "Taylor Swift" },
+
+  // Missing Lover tracks  
+  { title: "Daylight", album: "Lover", artist: "Taylor Swift" },
+  { title: "It's Nice to Have a Friend", album: "Lover", artist: "Taylor Swift" },
+  { title: "The Moment I Knew", album: "Lover", artist: "Taylor Swift" },
+
+  // Midnights 3am Edition bonus tracks
+  { title: "Hits Different", album: "Midnights", artist: "Taylor Swift" },
+  { title: "Snow on the Beach (feat. More Lana Del Rey)", album: "Midnights", artist: "Taylor Swift" },
+  { title: "Would've, Could've, Should've", album: "Midnights", artist: "Taylor Swift" },
+  { title: "Dear Reader", album: "Midnights", artist: "Taylor Swift" },
+
+  // The Tortured Poets Department - The Anthology (Bonus tracks)
+  { title: "The Black Dog", album: "The Tortured Poets Department", artist: "Taylor Swift" },
+  { title: "imgonnagetyouback", album: "The Tortured Poets Department", artist: "Taylor Swift" },
+  { title: "The Albatross", album: "The Tortured Poets Department", artist: "Taylor Swift" },
+  { title: "Chloe or Sam or Sophia or Marcus", album: "The Tortured Poets Department", artist: "Taylor Swift" },
+  { title: "How Did It End?", album: "The Tortured Poets Department", artist: "Taylor Swift" },
+  { title: "So High School", album: "The Tortured Poets Department", artist: "Taylor Swift" },
+  { title: "I Hate It Here", album: "The Tortured Poets Department", artist: "Taylor Swift" },
+  { title: "thanK you aIMee", album: "The Tortured Poets Department", artist: "Taylor Swift" },
+  { title: "I Look in People's Windows", album: "The Tortured Poets Department", artist: "Taylor Swift" },
+  { title: "The Prophecy", album: "The Tortured Poets Department", artist: "Taylor Swift" },
+  { title: "Cassandra", album: "The Tortured Poets Department", artist: "Taylor Swift" },
+  { title: "Peter", album: "The Tortured Poets Department", artist: "Taylor Swift" },
+  { title: "The Bolter", album: "The Tortured Poets Department", artist: "Taylor Swift" },
+  { title: "Robin", album: "The Tortured Poets Department", artist: "Taylor Swift" },
+  { title: "The Manuscript", album: "The Tortured Poets Department", artist: "Taylor Swift" },
+
+  // Fearless (Taylor's Version) vault tracks
+  { title: "Mr. Perfectly Fine", album: "Fearless (Taylor's Version)", artist: "Taylor Swift" },
+  { title: "We Were Happy", album: "Fearless (Taylor's Version)", artist: "Taylor Swift" },
+  { title: "That's When", album: "Fearless (Taylor's Version)", artist: "Taylor Swift" },
+  { title: "Don't You", album: "Fearless (Taylor's Version)", artist: "Taylor Swift" },
+  { title: "Bye Bye Baby", album: "Fearless (Taylor's Version)", artist: "Taylor Swift" },
+  { title: "You All Over Me", album: "Fearless (Taylor's Version)", artist: "Taylor Swift" },
+
+  // Red (Taylor's Version) vault tracks
+  { title: "All Too Well (10 Minute Version)", album: "Red (Taylor's Version)", artist: "Taylor Swift" },
+  { title: "I Bet You Think About Me", album: "Red (Taylor's Version)", artist: "Taylor Swift" },
+  { title: "Forever Winter", album: "Red (Taylor's Version)", artist: "Taylor Swift" },
+  { title: "Run", album: "Red (Taylor's Version)", artist: "Taylor Swift" },
+  { title: "The Very First Night", album: "Red (Taylor's Version)", artist: "Taylor Swift" },
+  { title: "All Too Well (Sad Girl Autumn Version)", album: "Red (Taylor's Version)", artist: "Taylor Swift" },
+  { title: "Better Man", album: "Red (Taylor's Version)", artist: "Taylor Swift" },
+  { title: "Nothing New", album: "Red (Taylor's Version)", artist: "Taylor Swift" },
+  { title: "Babe", album: "Red (Taylor's Version)", artist: "Taylor Swift" },
+  { title: "Message In A Bottle", album: "Red (Taylor's Version)", artist: "Taylor Swift" },
+
+  // Speak Now (Taylor's Version) vault tracks
+  { title: "Electric Touch", album: "Speak Now (Taylor's Version)", artist: "Taylor Swift" },
+  { title: "When Emma Falls in Love", album: "Speak Now (Taylor's Version)", artist: "Taylor Swift" },
+  { title: "I Can See You", album: "Speak Now (Taylor's Version)", artist: "Taylor Swift" },
+  { title: "Castles Crumbling", album: "Speak Now (Taylor's Version)", artist: "Taylor Swift" },
+  { title: "Foolish One", album: "Speak Now (Taylor's Version)", artist: "Taylor Swift" },
+  { title: "Timeless", album: "Speak Now (Taylor's Version)", artist: "Taylor Swift" },
+
+  // 1989 (Taylor's Version) vault tracks
+  { title: "Slut!", album: "1989 (Taylor's Version)", artist: "Taylor Swift" },
+  { title: "Say Don't Go", album: "1989 (Taylor's Version)", artist: "Taylor Swift" },
+  { title: "Now That We Don't Talk", album: "1989 (Taylor's Version)", artist: "Taylor Swift" },
+  { title: "Suburban Legends", album: "1989 (Taylor's Version)", artist: "Taylor Swift" },
+  { title: "Is It Over Now?", album: "1989 (Taylor's Version)", artist: "Taylor Swift" },
+
   // Notable non-album singles, soundtrack & collaborations
   { title: "Safe & Sound", album: "The Hunger Games: Songs from District 12", artist: "Taylor Swift" },
   { title: "I Don't Wanna Live Forever", album: "Fifty Shades Darker (Soundtrack)", artist: "Taylor Swift" },
@@ -176,7 +244,9 @@ export const songs = [
   { title: "Today Was a Fairytale", album: "Valentine's Day (Soundtrack)", artist: "Taylor Swift" },
   { title: "Ronan", album: "Single", artist: "Taylor Swift" },
   { title: "Eyes Open", album: "The Hunger Games", artist: "Taylor Swift" },
-  { title: "Safe & Sound", album: "Single", artist: "Taylor Swift" },
+  { title: "Both of Us", album: "Collaboration", artist: "Taylor Swift" },
+  { title: "Highway Don't Care", album: "Collaboration", artist: "Taylor Swift" },
+  { title: "Two Is Better Than One", album: "Collaboration", artist: "Taylor Swift" },
   // Recent single / The Life of a Showgirl (standard album - 12 tracks)
   { title: "The Fate of Ophelia", album: "The Life of a Showgirl", artist: "Taylor Swift" },
   { title: "Elizabeth Taylor", album: "The Life of a Showgirl", artist: "Taylor Swift" },

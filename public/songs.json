@@ -1,66 +1,1297 @@
 [
-  { "title": "Tim McGraw", "album": "Taylor Swift", "artist": "Taylor Swift" },
-  { "title": "Picture to Burn", "album": "Taylor Swift", "artist": "Taylor Swift" },
-  { "title": "Teardrops on My Guitar", "album": "Taylor Swift", "artist": "Taylor Swift" },
-  { "title": "Our Song", "album": "Taylor Swift", "artist": "Taylor Swift" },
-  { "title": "Love Story", "album": "Fearless", "artist": "Taylor Swift" },
-  { "title": "You Belong with Me", "album": "Fearless", "artist": "Taylor Swift" },
-  { "title": "Fifteen", "album": "Fearless", "artist": "Taylor Swift" },
-  { "title": "Mine", "album": "Speak Now", "artist": "Taylor Swift" },
-  { "title": "Back to December", "album": "Speak Now", "artist": "Taylor Swift" },
-  { "title": "All Too Well", "album": "Red", "artist": "Taylor Swift" },
-  { "title": "22", "album": "Red", "artist": "Taylor Swift" },
-  { "title": "We Are Never Ever Getting Back Together", "album": "Red", "artist": "Taylor Swift" },
-  { "title": "Blank Space", "album": "1989", "artist": "Taylor Swift" },
-  { "title": "Shake It Off", "album": "1989", "artist": "Taylor Swift" },
-  { "title": "Style", "album": "1989", "artist": "Taylor Swift" },
-  { "title": "Bad Blood", "album": "1989", "artist": "Taylor Swift" },
-  { "title": "Look What You Made Me Do", "album": "Reputation", "artist": "Taylor Swift" },
-  { "title": "Delicate", "album": "Reputation", "artist": "Taylor Swift" },
-  { "title": "Cruel Summer", "album": "Lover", "artist": "Taylor Swift" },
-  { "title": "Lover", "album": "Lover", "artist": "Taylor Swift" },
-  { "title": "The Man", "album": "Lover", "artist": "Taylor Swift" },
-  { "title": "Cardigan", "album": "Folklore", "artist": "Taylor Swift" },
-  { "title": "The Last Great American Dynasty", "album": "Folklore", "artist": "Taylor Swift" },
-  { "title": "Exile", "album": "Folklore", "artist": "Taylor Swift" },
-  { "title": "Willow", "album": "Evermore", "artist": "Taylor Swift" },
-  { "title": "Champagne Problems", "album": "Evermore", "artist": "Taylor Swift" },
-  { "title": "Willow", "album": "Evermore", "artist": "Taylor Swift" },
-  { "title": "Anti-Hero", "album": "Midnights", "artist": "Taylor Swift" },
-  { "title": "Lavender Haze", "album": "Midnights", "artist": "Taylor Swift" },
-  { "title": "Bejeweled", "album": "Midnights", "artist": "Taylor Swift" },
-  { "title": "Karma", "album": "Midnights", "artist": "Taylor Swift" },
-  { "title": "Fortnight", "album": "The Tortured Poets Department", "artist": "Taylor Swift" },
-  { "title": "The Tortured Poets Department", "album": "The Tortured Poets Department", "artist": "Taylor Swift" },
-  { "title": "My Boy Only Breaks His Favorite Toys", "album": "The Tortured Poets Department", "artist": "Taylor Swift" },
-  { "title": "Down Bad", "album": "The Tortured Poets Department", "artist": "Taylor Swift" },
-  { "title": "So Long, London", "album": "The Tortured Poets Department", "artist": "Taylor Swift" },
-  { "title": "But Daddy I Love Him", "album": "The Tortured Poets Department", "artist": "Taylor Swift" },
-  { "title": "Fresh Out the Slammer", "album": "The Tortured Poets Department", "artist": "Taylor Swift" },
-  { "title": "Florida!!!", "album": "The Tortured Poets Department", "artist": "Taylor Swift" },
-  { "title": "Guilty as Sin?", "album": "The Tortured Poets Department", "artist": "Taylor Swift" },
-  { "title": "Who's Afraid of Little Old Me?", "album": "The Tortured Poets Department", "artist": "Taylor Swift" },
-  { "title": "I Can Fix Him (No Really I Can)", "album": "The Tortured Poets Department", "artist": "Taylor Swift" },
-  { "title": "Loml", "album": "The Tortured Poets Department", "artist": "Taylor Swift" },
-  { "title": "I Can Do It with a Broken Heart", "album": "The Tortured Poets Department", "artist": "Taylor Swift" },
-  { "title": "The Smallest Man Who Ever Lived", "album": "The Tortured Poets Department", "artist": "Taylor Swift" },
-  { "title": "The Alchemy", "album": "The Tortured Poets Department", "artist": "Taylor Swift" },
-  { "title": "Clara Bow", "album": "The Tortured Poets Department", "artist": "Taylor Swift" },
-  { "title": "Carolina", "album": "Where the Crawdads Sing (Soundtrack)", "artist": "Taylor Swift" },
-  { "title": "I Don't Wanna Live Forever", "album": "Fifty Shades Darker (Soundtrack)", "artist": "Taylor Swift" },
-  { "title": "Sweeter Than Fiction", "album": "Single", "artist": "Taylor Swift" },
-  { "title": "Christmas Tree Farm", "album": "Single", "artist": "Taylor Swift" },
-  { "title": "Ronan", "album": "Single", "artist": "Taylor Swift" },
-  { "title": "The Fate of Ophelia", "album": "The Life of a Showgirl", "artist": "Taylor Swift" },
-  { "title": "Elizabeth Taylor", "album": "The Life of a Showgirl", "artist": "Taylor Swift" },
-  { "title": "Opalite", "album": "The Life of a Showgirl", "artist": "Taylor Swift" },
-  { "title": "Father Figure", "album": "The Life of a Showgirl", "artist": "Taylor Swift" },
-  { "title": "Eldest Daughter", "album": "The Life of a Showgirl", "artist": "Taylor Swift" },
-  { "title": "Ruin the Friendship", "album": "The Life of a Showgirl", "artist": "Taylor Swift" },
-  { "title": "Actually Romantic", "album": "The Life of a Showgirl", "artist": "Taylor Swift" },
-  { "title": "Wish List", "album": "The Life of a Showgirl", "artist": "Taylor Swift" },
-  { "title": "Wood", "album": "The Life of a Showgirl", "artist": "Taylor Swift" },
-  { "title": "Cancelled!", "album": "The Life of a Showgirl", "artist": "Taylor Swift" },
-  { "title": "Honey", "album": "The Life of a Showgirl", "artist": "Taylor Swift" },
-  { "title": "The Life of a Showgirl", "album": "The Life of a Showgirl", "artist": "Taylor Swift" }
+  {
+    "title": "Tim McGraw",
+    "album": "Taylor Swift",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Picture to Burn",
+    "album": "Taylor Swift",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Teardrops on My Guitar",
+    "album": "Taylor Swift",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "A Place in This World",
+    "album": "Taylor Swift",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Cold as You",
+    "album": "Taylor Swift",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "The Outside",
+    "album": "Taylor Swift",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Tied Together with a Smile",
+    "album": "Taylor Swift",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Stay Beautiful",
+    "album": "Taylor Swift",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Should've Said No",
+    "album": "Taylor Swift",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Mary's Song (Oh My My My)",
+    "album": "Taylor Swift",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Our Song",
+    "album": "Taylor Swift",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "A Perfectly Good Heart",
+    "album": "Taylor Swift",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Fearless",
+    "album": "Fearless",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Fifteen",
+    "album": "Fearless",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Love Story",
+    "album": "Fearless",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Hey Stephen",
+    "album": "Fearless",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "White Horse",
+    "album": "Fearless",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "You Belong with Me",
+    "album": "Fearless",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Breathe",
+    "album": "Fearless",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Tell Me Why",
+    "album": "Fearless",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "You're Not Sorry",
+    "album": "Fearless",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "The Way I Loved You",
+    "album": "Fearless",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Forever & Always",
+    "album": "Fearless",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "The Best Day",
+    "album": "Fearless",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Change",
+    "album": "Fearless",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Mine",
+    "album": "Speak Now",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Sparks Fly",
+    "album": "Speak Now",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Back to December",
+    "album": "Speak Now",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Speak Now",
+    "album": "Speak Now",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Dear John",
+    "album": "Speak Now",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Mean",
+    "album": "Speak Now",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "The Story of Us",
+    "album": "Speak Now",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Never Grow Up",
+    "album": "Speak Now",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Enchanted",
+    "album": "Speak Now",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Better than Revenge",
+    "album": "Speak Now",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Innocent",
+    "album": "Speak Now",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Haunted",
+    "album": "Speak Now",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Last Kiss",
+    "album": "Speak Now",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Long Live",
+    "album": "Speak Now",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "State of Grace",
+    "album": "Red",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Red",
+    "album": "Red",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Treacherous",
+    "album": "Red",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "I Knew You Were Trouble",
+    "album": "Red",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "All Too Well",
+    "album": "Red",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "22",
+    "album": "Red",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "I Almost Do",
+    "album": "Red",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "We Are Never Ever Getting Back Together",
+    "album": "Red",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Stay Stay Stay",
+    "album": "Red",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "The Last Time",
+    "album": "Red",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Holy Ground",
+    "album": "Red",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Sad Beautiful Tragic",
+    "album": "Red",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "The Lucky One",
+    "album": "Red",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Everything Has Changed",
+    "album": "Red",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Starlight",
+    "album": "Red",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Begin Again",
+    "album": "Red",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Welcome to New York",
+    "album": "1989",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Blank Space",
+    "album": "1989",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Style",
+    "album": "1989",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Out of the Woods",
+    "album": "1989",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "All You Had to Do Was Stay",
+    "album": "1989",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Shake It Off",
+    "album": "1989",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "I Wish You Would",
+    "album": "1989",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Bad Blood",
+    "album": "1989",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Wildest Dreams",
+    "album": "1989",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "How You Get the Girl",
+    "album": "1989",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "This Love",
+    "album": "1989",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "I Know Places",
+    "album": "1989",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Clean",
+    "album": "1989",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "...Ready for It?",
+    "album": "Reputation",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "End Game",
+    "album": "Reputation",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "I Did Something Bad",
+    "album": "Reputation",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Don't Blame Me",
+    "album": "Reputation",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Delicate",
+    "album": "Reputation",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Look What You Made Me Do",
+    "album": "Reputation",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Gorgeous",
+    "album": "Reputation",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Getaway Car",
+    "album": "Reputation",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "King of My Heart",
+    "album": "Reputation",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Dancing with Our Hands Tied",
+    "album": "Reputation",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Dress",
+    "album": "Reputation",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "This Is Why We Can't Have Nice Things",
+    "album": "Reputation",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "I Forgot That You Existed",
+    "album": "Lover",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Cruel Summer",
+    "album": "Lover",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Lover",
+    "album": "Lover",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "The Man",
+    "album": "Lover",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "The Archer",
+    "album": "Lover",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Miss Americana & the Heartbreak Prince",
+    "album": "Lover",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Paper Rings",
+    "album": "Lover",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Cornelia Street",
+    "album": "Lover",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Death by a Thousand Cuts",
+    "album": "Lover",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "London Boy",
+    "album": "Lover",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Soon You'll Get Better",
+    "album": "Lover",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "False God",
+    "album": "Lover",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "You Need to Calm Down",
+    "album": "Lover",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Afterglow",
+    "album": "Lover",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "ME!",
+    "album": "Lover",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "The 1",
+    "album": "Folklore",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Cardigan",
+    "album": "Folklore",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "The Last Great American Dynasty",
+    "album": "Folklore",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Exile",
+    "album": "Folklore",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "My Tears Ricochet",
+    "album": "Folklore",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Mirrorball",
+    "album": "Folklore",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Seven",
+    "album": "Folklore",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "August",
+    "album": "Folklore",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "This Is Me Trying",
+    "album": "Folklore",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Illicit Affairs",
+    "album": "Folklore",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Invisible String",
+    "album": "Folklore",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Mad Woman",
+    "album": "Folklore",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Betty",
+    "album": "Folklore",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Peace",
+    "album": "Folklore",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Hoax",
+    "album": "Folklore",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Willow",
+    "album": "Evermore",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Champagne Problems",
+    "album": "Evermore",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Gold Rush",
+    "album": "Evermore",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "'Tis the Damn Season",
+    "album": "Evermore",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Tolerate It",
+    "album": "Evermore",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "No Body, No Crime",
+    "album": "Evermore",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Happiness",
+    "album": "Evermore",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Dorothea",
+    "album": "Evermore",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Coney Island",
+    "album": "Evermore",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Ivy",
+    "album": "Evermore",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Cowboy Like Me",
+    "album": "Evermore",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Long Story Short",
+    "album": "Evermore",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Marjorie",
+    "album": "Evermore",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Closure",
+    "album": "Evermore",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Evermore",
+    "album": "Evermore",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Lavender Haze",
+    "album": "Midnights",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Maroon",
+    "album": "Midnights",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Anti-Hero",
+    "album": "Midnights",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Snow on the Beach",
+    "album": "Midnights",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "You're On Your Own, Kid",
+    "album": "Midnights",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Midnight Rain",
+    "album": "Midnights",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Question...?",
+    "album": "Midnights",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Vigilante Shit",
+    "album": "Midnights",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Bejeweled",
+    "album": "Midnights",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Labyrinth",
+    "album": "Midnights",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Karma",
+    "album": "Midnights",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Sweet Nothing",
+    "album": "Midnights",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Mastermind",
+    "album": "Midnights",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Fortnight",
+    "album": "The Tortured Poets Department",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "The Tortured Poets Department",
+    "album": "The Tortured Poets Department",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "My Boy Only Breaks His Favorite Toys",
+    "album": "The Tortured Poets Department",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Down Bad",
+    "album": "The Tortured Poets Department",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "So Long, London",
+    "album": "The Tortured Poets Department",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "But Daddy I Love Him",
+    "album": "The Tortured Poets Department",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Fresh Out the Slammer",
+    "album": "The Tortured Poets Department",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Florida!!!",
+    "album": "The Tortured Poets Department",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Guilty as Sin?",
+    "album": "The Tortured Poets Department",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Who's Afraid of Little Old Me?",
+    "album": "The Tortured Poets Department",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "I Can Fix Him (No Really I Can)",
+    "album": "The Tortured Poets Department",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Loml",
+    "album": "The Tortured Poets Department",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "I Can Do It with a Broken Heart",
+    "album": "The Tortured Poets Department",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "The Smallest Man Who Ever Lived",
+    "album": "The Tortured Poets Department",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "The Alchemy",
+    "album": "The Tortured Poets Department",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Clara Bow",
+    "album": "The Tortured Poets Department",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Call It What You Want",
+    "album": "Reputation",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "New Year's Day",
+    "album": "Reputation",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "So It Goes...",
+    "album": "Reputation",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Daylight",
+    "album": "Lover",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "It's Nice to Have a Friend",
+    "album": "Lover",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "The Moment I Knew",
+    "album": "Lover",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Hits Different",
+    "album": "Midnights",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Snow on the Beach (feat. More Lana Del Rey)",
+    "album": "Midnights",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Would've, Could've, Should've",
+    "album": "Midnights",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Dear Reader",
+    "album": "Midnights",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "The Black Dog",
+    "album": "The Tortured Poets Department",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "imgonnagetyouback",
+    "album": "The Tortured Poets Department",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "The Albatross",
+    "album": "The Tortured Poets Department",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Chloe or Sam or Sophia or Marcus",
+    "album": "The Tortured Poets Department",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "How Did It End?",
+    "album": "The Tortured Poets Department",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "So High School",
+    "album": "The Tortured Poets Department",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "I Hate It Here",
+    "album": "The Tortured Poets Department",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "thanK you aIMee",
+    "album": "The Tortured Poets Department",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "I Look in People's Windows",
+    "album": "The Tortured Poets Department",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "The Prophecy",
+    "album": "The Tortured Poets Department",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Cassandra",
+    "album": "The Tortured Poets Department",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Peter",
+    "album": "The Tortured Poets Department",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "The Bolter",
+    "album": "The Tortured Poets Department",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Robin",
+    "album": "The Tortured Poets Department",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "The Manuscript",
+    "album": "The Tortured Poets Department",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Mr. Perfectly Fine",
+    "album": "Fearless (Taylor's Version)",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "We Were Happy",
+    "album": "Fearless (Taylor's Version)",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "That's When",
+    "album": "Fearless (Taylor's Version)",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Don't You",
+    "album": "Fearless (Taylor's Version)",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Bye Bye Baby",
+    "album": "Fearless (Taylor's Version)",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "You All Over Me",
+    "album": "Fearless (Taylor's Version)",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "All Too Well (10 Minute Version)",
+    "album": "Red (Taylor's Version)",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "I Bet You Think About Me",
+    "album": "Red (Taylor's Version)",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Forever Winter",
+    "album": "Red (Taylor's Version)",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Run",
+    "album": "Red (Taylor's Version)",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "The Very First Night",
+    "album": "Red (Taylor's Version)",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "All Too Well (Sad Girl Autumn Version)",
+    "album": "Red (Taylor's Version)",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Better Man",
+    "album": "Red (Taylor's Version)",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Nothing New",
+    "album": "Red (Taylor's Version)",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Babe",
+    "album": "Red (Taylor's Version)",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Message In A Bottle",
+    "album": "Red (Taylor's Version)",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Electric Touch",
+    "album": "Speak Now (Taylor's Version)",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "When Emma Falls in Love",
+    "album": "Speak Now (Taylor's Version)",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "I Can See You",
+    "album": "Speak Now (Taylor's Version)",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Castles Crumbling",
+    "album": "Speak Now (Taylor's Version)",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Foolish One",
+    "album": "Speak Now (Taylor's Version)",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Timeless",
+    "album": "Speak Now (Taylor's Version)",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Slut!",
+    "album": "1989 (Taylor's Version)",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Say Don't Go",
+    "album": "1989 (Taylor's Version)",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Now That We Don't Talk",
+    "album": "1989 (Taylor's Version)",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Suburban Legends",
+    "album": "1989 (Taylor's Version)",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Is It Over Now?",
+    "album": "1989 (Taylor's Version)",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "I'm Only Me When I'm with You",
+    "album": "Taylor Swift",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Invisible",
+    "album": "Taylor Swift",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "A Perfectly Good Heart",
+    "album": "Taylor Swift",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Jump Then Fall",
+    "album": "Fearless",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Untouchable",
+    "album": "Fearless",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Come In with the Rain",
+    "album": "Fearless",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Superstar",
+    "album": "Fearless",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "The Other Side of the Door",
+    "album": "Fearless",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Forever & Always (Piano Version)",
+    "album": "Fearless",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Today Was a Fairytale",
+    "album": "Fearless (Platinum Edition)",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Ours",
+    "album": "Speak Now",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "If This Was a Movie",
+    "album": "Speak Now",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Superman",
+    "album": "Speak Now",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "The Moment I Knew",
+    "album": "Red",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Come Back... Be Here",
+    "album": "Red",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Girl at Home",
+    "album": "Red",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Treacherous (Original Demo Recording)",
+    "album": "Red",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Red (Original Demo Recording)",
+    "album": "Red",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "State of Grace (Acoustic Version)",
+    "album": "Red",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Wonderland",
+    "album": "1989",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "You Are in Love",
+    "album": "1989",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "New Romantics",
+    "album": "1989",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "The Lakes",
+    "album": "Folklore",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Right Where You Left Me",
+    "album": "Evermore",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "It's Time to Go",
+    "album": "Evermore",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "The Great War",
+    "album": "Midnights",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Bigger Than the Whole Sky",
+    "album": "Midnights",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Paris",
+    "album": "Midnights",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "High Infidelity",
+    "album": "Midnights",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Glitch",
+    "album": "Midnights",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "You're Losing Me",
+    "album": "Midnights",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Girl at Home (Taylor's Version)",
+    "album": "Red (Taylor's Version)",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Safe & Sound",
+    "album": "The Hunger Games: Songs from District 12",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Eyes Open",
+    "album": "The Hunger Games",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Sweeter Than Fiction",
+    "album": "One Chance (Soundtrack)",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "I Don't Wanna Live Forever",
+    "album": "Fifty Shades Darker (Soundtrack)",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Carolina",
+    "album": "Where the Crawdads Sing (Soundtrack)",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Christmas Tree Farm",
+    "album": "Single",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Beautiful Ghosts",
+    "album": "Cats (Soundtrack)",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Only the Young",
+    "album": "Miss Americana",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Renegade",
+    "album": "Collaboration (Big Red Machine)",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Birch",
+    "album": "Collaboration (Big Red Machine)",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "The Joker and the Queen",
+    "album": "Collaboration (Ed Sheeran)",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Gasoline (Remix)",
+    "album": "Collaboration (HAIM)",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Ronan",
+    "album": "Single",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Both of Us",
+    "album": "Collaboration (B.o.B)",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Highway Don't Care",
+    "album": "Collaboration (Tim McGraw)",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Two Is Better Than One",
+    "album": "Collaboration (Boys Like Girls)",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Half of My Heart",
+    "album": "Collaboration (John Mayer)",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Crazier",
+    "album": "Hannah Montana: The Movie",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Babe",
+    "album": "Single (Sugarland version)",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "Better Man",
+    "album": "Single (Little Big Town version)",
+    "artist": "Taylor Swift"
+  },
+  {
+    "title": "This Is What You Came For",
+    "album": "Collaboration (Calvin Harris - Nils Sjöberg)",
+    "artist": "Taylor Swift"
+  }
 ]

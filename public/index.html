@@ -4,6 +4,10 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Taylor Swift Song Ranker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600&family=Noto+Serif:ital,wght@0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -60,16 +64,53 @@
     <img class="sticker" src="stickers/sticker-music.svg" alt="" />
   </div>
 
-  <div data-pairwise="overlay" style="display:none">
-    <div class="pairwise-panel">
-      <div class="pair-tile" id="pair-left"></div>
-      <div class="pair-controls">
-        <div class="pair-counter" id="pair-counter">Comparisons: 0</div>
-        <div class="pair-progress-wrap" id="pair-progress-wrap"><div class="pair-progress" id="pair-progress" style="width:0%" aria-valuenow="0"></div></div>
-        <div class="pair-hint" id="pair-hint">Press 1 for left, 2 for right, Esc to cancel</div>
-        <button class="pair-action" id="pair-cancel">Cancel</button>
-      </div>
-      <div class="pair-tile" id="pair-right"></div>
+  <div data-pairwise="overlay" class="pairwise-overlay" style="display:none" aria-hidden="true">
+    <div class="pairwise-shell">
+      <header class="pairwise-topbar">
+        <div class="pairwise-topbar-row">
+          <div class="pairwise-brand">
+            <span class="material-symbols-outlined pairwise-brand-icon" aria-hidden="true">history_edu</span>
+            <span class="pairwise-brand-title">The Archive</span>
+          </div>
+        </div>
+        <div class="pairwise-progress-block">
+          <div class="pair-progress-wrap" id="pair-progress-wrap" role="progressbar" aria-valuemin="0" aria-valuemax="100">
+            <div class="pair-progress" id="pair-progress" style="width:0%"></div>
+          </div>
+          <div class="pairwise-progress-label label-caps" id="pair-progress-label">0% ranked</div>
+        </div>
+      </header>
+      <main class="pairwise-main">
+        <div class="pairwise-pill label-caps" id="pair-ranked-pill">
+          <span class="material-symbols-outlined" aria-hidden="true">bar_chart</span>
+          <span id="pair-ranked-text">Ranked 0 songs</span>
+        </div>
+        <div class="pairwise-prompt">
+          <h2 class="pairwise-headline">Choose your favorite</h2>
+          <p class="pairwise-sub">Select the song that resonates more deeply</p>
+        </div>
+        <div class="pairwise-cards">
+          <div class="pair-tile-wrap">
+            <div class="pair-tile" id="pair-left" role="group" aria-label="First choice"></div>
+          </div>
+          <div class="pair-vs" aria-hidden="true">
+            <span class="pair-vs-line"></span>
+            <span class="pair-vs-badge label-caps">VS</span>
+            <span class="pair-vs-line"></span>
+          </div>
+          <div class="pair-tile-wrap">
+            <div class="pair-tile" id="pair-right" role="group" aria-label="Second choice"></div>
+          </div>
+        </div>
+        <div class="pair-controls">
+          <div class="pair-counter label-caps" id="pair-counter">Comparisons: 0</div>
+          <p class="pair-hint" id="pair-hint">Tap a card, or press <kbd>1</kbd> / <kbd>2</kbd> · <kbd>Esc</kbd> to pause</p>
+          <button type="button" class="pair-skip" id="pair-cancel">
+            <span class="material-symbols-outlined" aria-hidden="true">fast_forward</span>
+            Skip for now
+          </button>
+        </div>
+      </main>
     </div>
   </div>
 

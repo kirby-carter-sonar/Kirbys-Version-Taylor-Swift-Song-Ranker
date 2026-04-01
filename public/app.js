@@ -1,6 +1,137 @@
 const STORAGE_KEY = 'ts-song-ranker:v1';
 
 const el = (id) => document.getElementById(id);
+
+/** iTunes Search API — album artwork, cached per artist+album (CORS allowed for browsers). */
+const albumArtCache = new Map();
+
+function normalizeAlbumLabel(s) {
+  return String(s || '')
+    .toLowerCase()
+    .replace(/\u2019/g, "'")
+    .replace(/[–—]/g, '-')
+    .replace(/\s*\([^)]*deluxe[^)]*\)/gi, '')
+    .trim();
+}
+
+async function fetchAlbumArtUrl(song) {
+  const album = (song && song.album) || '';
+  const artist = (song && song.artist) || 'Taylor Swift';
+  const key = `${artist}\0${album}`;
+  if (albumArtCache.has(key)) return albumArtCache.get(key);
+  if (!album.trim()) {
+    albumArtCache.set(key, null);
+    return null;
+  }
+  try {
+    const term = encodeURIComponent(`${album} ${artist}`);
+    const res = await fetch(
+      `https://itunes.apple.com/search?term=${term}&entity=album&limit=8`
+    );
+    if (!res.ok) throw new Error(String(res.status));
+    const data = await res.json();
+    const results = data.results || [];
+    const want = normalizeAlbumLabel(album);
+    let best = null;
+    for (const r of results) {
+      const name = normalizeAlbumLabel(r.collectionName || '');
+      if (name === want || name.startsWith(want + ' ') || name.startsWith(want + '(')) {
+        best = r;
+        break;
+      }
+    }
+    if (!best) {
+      for (const r of results) {
+        const name = normalizeAlbumLabel(r.collectionName || '');
+        if (name.includes(want) || want.includes(name)) {
+          best = r;
+          break;
+        }
+      }
+    }
+    if (!best && results[0]) best = results[0];
+    const url =
+      best && best.artworkUrl100
+        ? best.artworkUrl100.replace('100x100bb', '600x600bb')
+        : null;
+    albumArtCache.set(key, url);
+    return url;
+  } catch (e) {
+    albumArtCache.set(key, null);
+    return null;
+  }
+}
+
+function updatePairwiseChrome(rankedLen, totalSongs, comparisons) {
+  const total = Math.max(0, totalSongs | 0);
+  const pct = total ? Math.round((Math.min(rankedLen, total) / total) * 100) : 0;
+  const bar = el('pair-progress');
+  if (bar) {
+    bar.style.width = pct + '%';
+    const wrap = el('pair-progress-wrap');
+    if (wrap) wrap.setAttribute('aria-valuenow', String(pct));
+  }
+  const lbl = el('pair-progress-label');
+  if (lbl) lbl.textContent = `${pct}% ranked`;
+  const pill = el('pair-ranked-text');
+  if (pill) pill.textContent = `Ranked ${rankedLen}/${total || '—'} songs`;
+  const counter = el('pair-counter');
+  if (counter && typeof comparisons === 'number') {
+    counter.textContent = `Comparisons: ${comparisons} (tap or 1 / 2)`;
+  }
+}
+
+function renderBattleTile(tileEl, song, imageUrl) {
+  if (!tileEl) return null;
+  tileEl.innerHTML = '';
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'pair-battle-card';
+  const wrap = document.createElement('div');
+  wrap.className = 'pair-cover-wrap';
+  if (imageUrl) {
+    const img = document.createElement('img');
+    img.className = 'pair-cover-img';
+    img.alt = '';
+    img.src = imageUrl;
+    img.loading = 'eager';
+    img.referrerPolicy = 'no-referrer';
+    img.onerror = () => {
+      img.remove();
+      if (!wrap.querySelector('.pair-cover-fallback')) {
+        const ph = document.createElement('div');
+        ph.className = 'pair-cover-fallback';
+        ph.setAttribute('aria-hidden', 'true');
+        wrap.appendChild(ph);
+      }
+    };
+    wrap.appendChild(img);
+  } else {
+    const ph = document.createElement('div');
+    ph.className = 'pair-cover-fallback';
+    ph.setAttribute('aria-hidden', 'true');
+    wrap.appendChild(ph);
+  }
+  const meta = document.createElement('div');
+  meta.className = 'pair-meta';
+  const h3 = document.createElement('h3');
+  h3.className = 'pair-song-title';
+  h3.textContent = song && song.title ? song.title : '(unknown title)';
+  const p = document.createElement('p');
+  p.className = 'pair-song-album';
+  p.textContent = song && song.album ? song.album : '—';
+  meta.appendChild(h3);
+  meta.appendChild(p);
+  const heart = document.createElement('span');
+  heart.className = 'pair-fav-hint';
+  heart.setAttribute('aria-hidden', 'true');
+  heart.innerHTML = '<span class="material-symbols-outlined">favorite</span>';
+  btn.appendChild(wrap);
+  btn.appendChild(meta);
+  btn.appendChild(heart);
+  tileEl.appendChild(btn);
+  return btn;
+}
 // songList removed in inline pairwise mode; keep function safe
 const songList = el('song-list');
 const loadDefaultBtn = el('load-default');
@@ -224,7 +355,10 @@ function buildPairwiseOverlay() {
     // ensure only one handler
     cancelBtn.replaceWith(cancelBtn.cloneNode(true));
     const newBtn = el('pair-cancel');
-    newBtn.addEventListener('click', () => { overlay.style.display = 'none'; });
+    newBtn.addEventListener('click', () => {
+      overlay.style.display = 'none';
+      overlay.setAttribute('aria-hidden', 'true');
+    });
   }
   return overlay;
 }
@@ -232,17 +366,19 @@ function buildPairwiseOverlay() {
 // Pairwise rank using insertion: O(n log n) comparisons
 async function pairwiseRank() {
   const overlay = buildPairwiseOverlay();
-  overlay.style.display = 'flex';
+  if (!overlay) {
+    alert('Pairwise UI is missing from the page.');
+    return;
+  }
+  overlay.style.display = 'block';
+  overlay.setAttribute('aria-hidden', 'false');
   const leftEl = el('pair-left');
   const rightEl = el('pair-right');
-  const counterEl = el('pair-counter');
 
   // We'll build ranked = [] by inserting songs one at a time using binary search with comparisons
   const pool = songs.slice();
   const ranked = [];
   let comparisons = 0;
-  const progressWrapEl = el('pair-progress-wrap');
-  const progressBarEl = el('pair-progress');
   const totalSongs = songs.length;
 
   // initial random head-to-head to get ranking started if nothing is ranked yet
@@ -252,11 +388,12 @@ async function pairwiseRank() {
     if (i2 >= i1) i2 += 1;
     const a = pool[i1];
     const b = pool[i2];
-    const firstChoice = await askCompare(a, b);
+    const firstChoice = await askCompare(a, b, 0);
     if (firstChoice === null) {
       // paused during initial comparison
       pairwiseStateSave({ poolIndex: 0, ranked, pool });
       overlay.style.display = 'none';
+      overlay.setAttribute('aria-hidden', 'true');
       alert('Pairwise ranking paused and saved. You can resume later.');
       return;
     }
@@ -269,37 +406,12 @@ async function pairwiseRank() {
       if (pool[k].title === winnerTitle || pool[k].title === loserTitle) pool.splice(k, 1);
     }
     pairwiseStateSave({ poolIndex: 0, ranked, pool });
-    // update progress bar
-    if (progressBarEl) {
-      const pct = Math.round((ranked.length / totalSongs) * 100);
-      progressBarEl.style.width = pct + '%';
-      progressBarEl.setAttribute('aria-valuenow', pct);
-    }
+    updatePairwiseChrome(ranked.length, totalSongs, comparisons);
   }
 
-  function renderTile(elm, song) {
-    try {
-      if (!elm) { logDebug('renderTile: missing element'); return document.createElement('button'); }
-      elm.innerHTML = '';
-      // create a focusable button inside the tile so clicking the title explicitly selects
-      const btn = document.createElement('button');
-      btn.className = 'pair-title-btn';
-      btn.type = 'button';
-      btn.textContent = (song && song.title) ? song.title : '(missing title)';
-      // ensure it fills the tile area visually
-      elm.appendChild(btn);
-      return btn;
-    } catch (err) {
-      console.error('renderTile error', err);
-      logDebug('renderTile error: ' + (err && err.message));
-      // fallback
-      const fb = document.createElement('button'); fb.className = 'pair-title-btn'; fb.type = 'button'; fb.textContent = '(error)'; return fb;
-    }
-  }
-
-  function flashChoice(elm) {
-    elm.classList.add('choice-flash');
-    setTimeout(() => elm.classList.remove('choice-flash'), 220);
+  function flashChoice(tileEl) {
+    tileEl.classList.add('choice-flash');
+    setTimeout(() => tileEl.classList.remove('choice-flash'), 360);
   }
 
   function renderRankedPreview(arr) {
@@ -316,29 +428,73 @@ async function pairwiseRank() {
 
   // Using global pairwise state functions
 
-  function askCompare(a, b) {
+  function askCompare(a, b, rankedLenForUi) {
     logDebug(`askCompare: ${a && a.title} vs ${b && b.title}`);
     return new Promise((resolve) => {
-      const leftBtn = renderTile(leftEl, a);
-      const rightBtn = renderTile(rightEl, b);
-      const onLeft = () => { cleanup(); flashChoice(leftEl); resolve(true); };
-      const onRight = () => { cleanup(); flashChoice(rightEl); resolve(false); };
-      const onKey = (ev) => {
-        if (ev.key === '1') return onLeft();
-        if (ev.key === '2') return onRight();
-        if (ev.key === 'Enter') {
-          // confirm focused tile if any
-          const active = document.activeElement;
-          if (active === leftEl || active === rightEl) return active === leftEl ? onLeft() : onRight();
+      (async () => {
+        let leftBtn;
+        let rightBtn;
+        try {
+          const [leftArt, rightArt] = await Promise.all([
+            fetchAlbumArtUrl(a),
+            fetchAlbumArtUrl(b)
+          ]);
+          leftBtn = renderBattleTile(leftEl, a, leftArt);
+          rightBtn = renderBattleTile(rightEl, b, rightArt);
+        } catch (err) {
+          console.error('Pairwise render failed', err);
+          leftBtn = renderBattleTile(leftEl, a, null);
+          rightBtn = renderBattleTile(rightEl, b, null);
         }
-        if (ev.key === 'Escape') { cleanup(); return resolve(null); }
-      };
-      function cleanup() { try { leftBtn.removeEventListener('click', onLeft); rightBtn.removeEventListener('click', onRight); leftBtn.onclick = null; rightBtn.onclick = null; } catch(e){} document.removeEventListener('keydown', onKey); }
-      // attach both addEventListener and onclick fallback to the title buttons
-      try { leftBtn.addEventListener('click', onLeft); rightBtn.addEventListener('click', onRight); leftBtn.onclick = onLeft; rightBtn.onclick = onRight; } catch(e){}
-      document.addEventListener('keydown', onKey);
-      comparisons++;
-      counterEl.textContent = `Comparisons: ${comparisons} (press 1/2 or click)`;
+        comparisons += 1;
+        updatePairwiseChrome(
+          typeof rankedLenForUi === 'number' ? rankedLenForUi : ranked.length,
+          totalSongs,
+          comparisons
+        );
+        const onLeft = () => {
+          cleanup();
+          flashChoice(leftEl);
+          resolve(true);
+        };
+        const onRight = () => {
+          cleanup();
+          flashChoice(rightEl);
+          resolve(false);
+        };
+        const onKey = (ev) => {
+          if (ev.key === '1') return onLeft();
+          if (ev.key === '2') return onRight();
+          if (ev.key === 'Enter') {
+            const active = document.activeElement;
+            if (leftEl.contains(active)) return onLeft();
+            if (rightEl.contains(active)) return onRight();
+          }
+          if (ev.key === 'Escape') {
+            cleanup();
+            return resolve(null);
+          }
+        };
+        function cleanup() {
+          try {
+            leftBtn.removeEventListener('click', onLeft);
+            rightBtn.removeEventListener('click', onRight);
+            leftBtn.onclick = null;
+            rightBtn.onclick = null;
+          } catch (e) {}
+          document.removeEventListener('keydown', onKey);
+        }
+        try {
+          leftBtn.addEventListener('click', onLeft);
+          rightBtn.addEventListener('click', onRight);
+          leftBtn.onclick = onLeft;
+          rightBtn.onclick = onRight;
+        } catch (e) {}
+        document.addEventListener('keydown', onKey);
+      })().catch((err) => {
+        console.error('askCompare failed', err);
+        resolve(null);
+      });
     });
   }
 
@@ -350,11 +506,12 @@ async function pairwiseRank() {
       const mid = Math.floor((lo + hi) / 2);
       // persist current comparison state so we can resume even if the browser closes
       try { pairwiseStateSave({ poolIndex: i, ranked, pool, lo, hi, comparisons }); } catch (e) {}
-      const preferLeft = await askCompare(item, ranked[mid]);
+      const preferLeft = await askCompare(item, ranked[mid], ranked.length);
       if (preferLeft === null) {
         // user pressed Escape to cancel the whole run — save progress and exit
         pairwiseStateSave({ poolIndex: i, ranked, pool });
         overlay.style.display = 'none';
+        overlay.setAttribute('aria-hidden', 'true');
         alert('Pairwise ranking paused and saved. You can resume later.');
         return;
       }
@@ -365,18 +522,14 @@ async function pairwiseRank() {
     pairwiseStateSave({ poolIndex: i + 1, ranked, pool });
     songs = ranked.slice(); // update main songs array
     save(); // auto-save progress
-    // update progress bar (completed = ranked.length)
-    if (progressBarEl) {
-      const pct = Math.round((ranked.length / totalSongs) * 100);
-      progressBarEl.style.width = pct + '%';
-      progressBarEl.setAttribute('aria-valuenow', pct);
-    }
+    updatePairwiseChrome(ranked.length, totalSongs, comparisons);
     // update preview
     renderRankedPreview(ranked);
   }
 
   // finished
   overlay.style.display = 'none';
+  overlay.setAttribute('aria-hidden', 'true');
   songs = ranked; render(); save();
   pairwiseStateClear();
   alert(`Pairwise ranking complete — ${comparisons} comparisons. Results saved.`);
@@ -387,85 +540,130 @@ async function resumePairwiseIfNeeded() {
   const s = pairwiseStateLoad();
   if (!s) return false;
   if (!confirm('A paused pairwise run was found. Resume?')) { pairwiseStateClear(); return false; }
-  // rebuild pool and ranked from saved state
-  const overlay = buildPairwiseOverlay(); overlay.style.display = 'flex';
-  const leftEl = el('pair-left'); const rightEl = el('pair-right'); const counterEl = el('pair-counter');
+  const overlay = buildPairwiseOverlay();
+  overlay.style.display = 'block';
+  overlay.setAttribute('aria-hidden', 'false');
+  const leftEl = el('pair-left');
+  const rightEl = el('pair-right');
   let { poolIndex, ranked, pool } = s;
   let comparisons = 0;
-  const progressBarElLocal = el('pair-progress');
-  function renderTile(elm, song) {
-    // original compact renderer used elsewhere; keep simple here
-    if (!elm) return null;
-    elm.innerHTML = '';
-    const t = document.createElement('div');
-    t.className = 'song-title';
-    t.textContent = (song && song.title) ? song.title : '(missing)';
-    elm.appendChild(t);
-    return t;
+  const totalSongs = Math.max(songs.length, (ranked && pool) ? ranked.length + pool.length : 0);
+
+  function flashChoiceResume(tileEl) {
+    tileEl.classList.add('choice-flash');
+    setTimeout(() => tileEl.classList.remove('choice-flash'), 360);
   }
 
-  function renderTileLocal(elm, song) {
+  function renderRankedPreviewResume(arr) {
     try {
-      if (!elm) { logDebug('renderTileLocal: missing elm'); return document.createElement('div'); }
-      elm.innerHTML = '';
-      const t = document.createElement('div');
-      t.className = 'song-title';
-      t.textContent = (song && song.title) ? song.title : '(missing)';
-      elm.appendChild(t);
-      return t;
-    } catch (e) {
-      logDebug('renderTileLocal error: ' + (e && e.message));
-      const fb = document.createElement('div'); fb.className = 'song-title'; fb.textContent = '(error)';
-      return fb;
-    }
+      if (!rankedListEl) return;
+      rankedListEl.innerHTML = '';
+      arr.forEach((sng) => {
+        const li = document.createElement('li');
+        li.textContent = `${sng.title} — ${sng.album}`;
+        rankedListEl.appendChild(li);
+      });
+    } catch (e) { console.warn('Failed to render ranked preview', e); }
   }
 
-  function askCompareLocal(a, b) {
-    logDebug(`askCompareLocal: ${a && a.title} vs ${b && b.title}`);
+  function askCompareResume(a, b, rankedLenForUi) {
+    logDebug(`askCompareResume: ${a && a.title} vs ${b && b.title}`);
     return new Promise((resolve) => {
-      const leftBtn = renderTileLocal(leftEl, a);
-      const rightBtn = renderTileLocal(rightEl, b);
-      const onLeft = () => { cleanup(); resolve(true); };
-      const onRight = () => { cleanup(); resolve(false); };
-      const onKey = (ev) => {
-        if (ev.key === '1') return onLeft();
-        if (ev.key === '2') return onRight();
-        if (ev.key === 'Enter') {
-          const active = document.activeElement;
-          if (active === leftEl || active === rightEl) return active === leftEl ? onLeft() : onRight();
+      (async () => {
+        let leftBtn;
+        let rightBtn;
+        try {
+          const [leftArt, rightArt] = await Promise.all([
+            fetchAlbumArtUrl(a),
+            fetchAlbumArtUrl(b)
+          ]);
+          leftBtn = renderBattleTile(leftEl, a, leftArt);
+          rightBtn = renderBattleTile(rightEl, b, rightArt);
+        } catch (err) {
+          leftBtn = renderBattleTile(leftEl, a, null);
+          rightBtn = renderBattleTile(rightEl, b, null);
         }
-        if (ev.key === 'Escape') { cleanup(); return resolve(null); }
-      };
-      function cleanup() { try { leftBtn.removeEventListener && leftBtn.removeEventListener('click', onLeft); rightBtn.removeEventListener && rightBtn.removeEventListener('click', onRight); leftBtn.onclick = null; rightBtn.onclick = null; } catch(e){} document.removeEventListener('keydown', onKey); }
-      try { if (leftBtn.addEventListener) leftBtn.addEventListener('click', onLeft); if (rightBtn.addEventListener) rightBtn.addEventListener('click', onRight); leftBtn.onclick = onLeft; rightBtn.onclick = onRight; } catch (e) {}
-      document.addEventListener('keydown', onKey);
-      comparisons++; counterEl.textContent = `Comparisons: ${comparisons} (press 1/2 or click)`;
+        comparisons += 1;
+        updatePairwiseChrome(
+          typeof rankedLenForUi === 'number' ? rankedLenForUi : ranked.length,
+          totalSongs,
+          comparisons
+        );
+        const onLeft = () => {
+          cleanup();
+          flashChoiceResume(leftEl);
+          resolve(true);
+        };
+        const onRight = () => {
+          cleanup();
+          flashChoiceResume(rightEl);
+          resolve(false);
+        };
+        const onKey = (ev) => {
+          if (ev.key === '1') return onLeft();
+          if (ev.key === '2') return onRight();
+          if (ev.key === 'Enter') {
+            const active = document.activeElement;
+            if (leftEl.contains(active)) return onLeft();
+            if (rightEl.contains(active)) return onRight();
+          }
+          if (ev.key === 'Escape') {
+            cleanup();
+            return resolve(null);
+          }
+        };
+        function cleanup() {
+          try {
+            leftBtn.removeEventListener('click', onLeft);
+            rightBtn.removeEventListener('click', onRight);
+            leftBtn.onclick = null;
+            rightBtn.onclick = null;
+          } catch (e) {}
+          document.removeEventListener('keydown', onKey);
+        }
+        leftBtn.addEventListener('click', onLeft);
+        rightBtn.addEventListener('click', onRight);
+        leftBtn.onclick = onLeft;
+        rightBtn.onclick = onRight;
+        document.addEventListener('keydown', onKey);
+      })().catch((err) => {
+        console.error('askCompareResume failed', err);
+        resolve(null);
+      });
     });
   }
+
   for (let i = poolIndex || 0; i < pool.length; i++) {
     const item = pool[i];
-    // if saved state includes lo/hi for this item, use them to resume in-progress binary search
     let lo = (s && typeof s.lo === 'number' && s.poolIndex === i) ? s.lo : 0;
     let hi = (s && typeof s.hi === 'number' && s.poolIndex === i) ? s.hi : ranked.length;
     while (lo < hi) {
       const mid = Math.floor((lo + hi) / 2);
       try { pairwiseStateSave({ poolIndex: i, ranked, pool, lo, hi, comparisons }); } catch (e) {}
-      const preferLeft = await askCompareLocal(item, ranked[mid]);
-      if (preferLeft === null) { pairwiseStateSave({ poolIndex: i, ranked, pool }); overlay.style.display = 'none'; alert('Pairwise ranking paused and saved.'); return true; }
+      const preferLeft = await askCompareResume(item, ranked[mid], ranked.length);
+      if (preferLeft === null) {
+        pairwiseStateSave({ poolIndex: i, ranked, pool });
+        overlay.style.display = 'none';
+        overlay.setAttribute('aria-hidden', 'true');
+        alert('Pairwise ranking paused and saved.');
+        return true;
+      }
       if (preferLeft) { hi = mid; } else { lo = mid + 1; }
     }
     ranked.splice(lo, 0, item);
     pairwiseStateSave({ poolIndex: i + 1, ranked, pool });
-    songs = ranked.slice(); // update main songs array during resume
-    save(); // auto-save progress during resume
-    if (progressBarElLocal) {
-      const pct = Math.round(((i + 1) / pool.length) * 100);
-      progressBarElLocal.style.width = pct + '%';
-      progressBarElLocal.setAttribute('aria-valuenow', pct);
-    }
-    renderRankedPreview(ranked);
+    songs = ranked.slice();
+    save();
+    updatePairwiseChrome(ranked.length, totalSongs, comparisons);
+    renderRankedPreviewResume(ranked);
   }
-  overlay.style.display = 'none'; songs = ranked; render(); save(); pairwiseStateClear(); alert('Resumed pairwise ranking complete.');
+  overlay.style.display = 'none';
+  overlay.setAttribute('aria-hidden', 'true');
+  songs = ranked;
+  render();
+  save();
+  pairwiseStateClear();
+  alert('Resumed pairwise ranking complete.');
   return true;
 }
 
