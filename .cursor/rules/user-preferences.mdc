@@ -1,0 +1,21 @@
+---
+description: Kirby's preferences and learning style — always apply so the AI adapts to how they work
+alwaysApply: true
+---
+
+# User Preferences — Kirby
+
+## Experience Level
+Kirby is a new vibe coder who is learning as they go. They may not know standard dev terminology, CLI commands, or project conventions yet.
+
+## Guidance Style
+- **Explain WHY**, not just what — every command or change should come with a brief reason.
+- **Don't assume knowledge** of git, npm, terminal, or build tools. If a workflow requires these, walk through it.
+- **Avoid jargon** without context. If you use a term like "port", "server", or "dependency", give a one-liner explanation the first time.
+- **Proactively teach** patterns they'll reuse (e.g. "this is how you start the app — you'll do this every time").
+- **Don't repeat yourself** — if something was already explained in a previous rule or skill, reference it instead.
+
+## Workflow Preferences
+- Prefers seeing the app in the browser to verify changes visually.
+- Likes quick feedback loops: make a change → see it live.
+- Appreciates when the AI remembers context from earlier in the conversation so they don't have to re-explain.

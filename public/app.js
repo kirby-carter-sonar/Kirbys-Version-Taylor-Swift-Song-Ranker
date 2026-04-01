@@ -102,20 +102,6 @@ async function fetchAlbumArtUrl(song) {
   }
 }
 
-function updatePairwiseChrome(rankedLen, totalSongs) {
-  const total = Math.max(0, totalSongs | 0);
-  const pct = total ? Math.round((Math.min(rankedLen, total) / total) * 100) : 0;
-  const bar = el('pair-progress');
-  if (bar) {
-    bar.style.width = pct + '%';
-    const wrap = el('pair-progress-wrap');
-    if (wrap) wrap.setAttribute('aria-valuenow', String(pct));
-  }
-  const lbl = el('pair-progress-label');
-  if (lbl) lbl.textContent = `${pct}% ranked`;
-  const pill = el('pair-ranked-text');
-  if (pill) pill.textContent = `Ranked ${rankedLen}/${total || '—'} songs`;
-}
 
 function renderBattleTile(tileEl, song, imageUrl) {
   if (!tileEl) return null;
@@ -175,7 +161,9 @@ const saveBtn = el('save');
 const shareBtn = el('share');
 const exportJsonBtn = el('export-json');
 const exportCsvBtn = el('export-csv');
-const importInput = el('import-file');
+const exportPdfBtn = el('export-pdf');
+const shareTextBtn = el('share-text');
+const shareNativeBtn = el('share-native');
 const startBattleBtn = el('start-battle');
 
 let songs = [];
@@ -372,14 +360,24 @@ function ensureDebugPane() {
 }
 function logDebug(msg) { try { const d = ensureDebugPane(); const log = d.querySelector('#debug-log'); const el = document.createElement('div'); el.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`; log.prepend(el); } catch (e) { console.log('dbg', msg); } }
 
-// Global pairwise state helpers so other functions (resume/init) can access saved runs
-function pairwiseStateSave(state) {
-  try { localStorage.setItem(PAIRWISE_KEY, JSON.stringify(state)); } catch (e) { console.warn('Failed to save pairwise state', e); }
+// ─── Persistent Elo/Swiss state ───
+const ELO_KEY = STORAGE_KEY + ':elo';
+
+function eloStateSave(state) {
+  try { localStorage.setItem(PAIRWISE_KEY, JSON.stringify(state)); } catch (_) {}
 }
-function pairwiseStateLoad() {
-  try { const s = localStorage.getItem(PAIRWISE_KEY); return s ? JSON.parse(s) : null; } catch (e) { return null; }
+function eloStateLoad() {
+  try { const s = localStorage.getItem(PAIRWISE_KEY); return s ? JSON.parse(s) : null; } catch (_) { return null; }
 }
-function pairwiseStateClear() { try { localStorage.removeItem(PAIRWISE_KEY); } catch (e) {} }
+function eloStateClear() { try { localStorage.removeItem(PAIRWISE_KEY); } catch (_) {} }
+
+function eloRatingsSave(ratings) {
+  try { localStorage.setItem(ELO_KEY, JSON.stringify(ratings)); } catch (_) {}
+}
+function eloRatingsLoad() {
+  try { const s = localStorage.getItem(ELO_KEY); return s ? JSON.parse(s) : null; } catch (_) { return null; }
+}
+function eloRatingsClear() { try { localStorage.removeItem(ELO_KEY); } catch (_) {} }
 
 function setupPairwiseRoot() {
   const root = document.querySelector('[data-pairwise="root"]');
@@ -390,316 +388,295 @@ function setupPairwiseRoot() {
     const newBtn = el('pair-cancel');
     newBtn.addEventListener('click', () => {
       document.dispatchEvent(
-        new KeyboardEvent('keydown', {
-          key: 'Escape',
-          code: 'Escape',
-          bubbles: true,
-          cancelable: true
-        })
+        new KeyboardEvent('keydown', { key: 'Escape', code: 'Escape', bubbles: true, cancelable: true })
       );
     });
   }
   return root;
 }
 
-// Pairwise rank using insertion: O(n log n) comparisons
-async function pairwiseRank() {
+/**
+ * Elo/Swiss hybrid ranking engine.
+ *
+ * How it works:
+ *   1. Every song starts at Elo 1500.
+ *   2. Each round, songs are sorted by current Elo and paired with their
+ *      nearest neighbor (Swiss pairing) — so you compare songs of similar
+ *      quality, which is the most informative matchup.
+ *   3. After a win/loss, both songs' Elo ratings are updated.
+ *   4. K-factor starts high (48) and decays each round so early rounds
+ *      cause big swings while later rounds fine-tune.
+ *   5. After all rounds, songs are sorted by Elo → that's your ranking.
+ *
+ * ~10 rounds × ~130 matchups/round = ~1,300 picks total (~35 min).
+ * The ranking is "good enough" after round 4–5 (~15–20 min) and the
+ * remaining rounds refine the order.
+ * You can pause anytime (Esc) and resume exactly where you left off.
+ */
+
+const TOTAL_ROUNDS = 10;
+const BASE_K = 48;
+
+function eloExpected(rA, rB) {
+  return 1 / (1 + Math.pow(10, (rB - rA) / 400));
+}
+
+function eloUpdate(rA, rB, aWon, K) {
+  const eA = eloExpected(rA, rB);
+  const eB = 1 - eA;
+  const sA = aWon ? 1 : 0;
+  const sB = aWon ? 0 : 1;
+  return [rA + K * (sA - eA), rB + K * (sB - eB)];
+}
+
+function buildSwissPairings(entries) {
+  const sorted = entries.slice().sort((a, b) => b.elo - a.elo);
+  const pairs = [];
+  const used = new Set();
+  for (let i = 0; i < sorted.length - 1; i++) {
+    if (used.has(i)) continue;
+    for (let j = i + 1; j < sorted.length; j++) {
+      if (used.has(j)) continue;
+      pairs.push([sorted[i], sorted[j]]);
+      used.add(i);
+      used.add(j);
+      break;
+    }
+  }
+  // add slight shuffle within pairs so the visually "better" song isn't always on the left
+  return pairs.map(([a, b]) => Math.random() < 0.5 ? [a, b] : [b, a]);
+}
+
+function sortedByElo(entries) {
+  return entries.slice().sort((a, b) => b.elo - a.elo);
+}
+
+function updateEloChrome(round, totalRounds, matchIdx, matchTotal, totalComparisons) {
+  const overallPct = Math.round(((round * matchTotal + matchIdx) / (totalRounds * matchTotal)) * 100);
+  const bar = el('pair-progress');
+  if (bar) {
+    bar.style.width = Math.min(overallPct, 100) + '%';
+    const wrap = el('pair-progress-wrap');
+    if (wrap) wrap.setAttribute('aria-valuenow', String(overallPct));
+  }
+  const lbl = el('pair-progress-label');
+  if (lbl) lbl.textContent = `${overallPct}%`;
+  const pill = el('pair-ranked-text');
+  if (pill) pill.textContent = `${totalComparisons} matchups completed`;
+}
+
+async function eloSwissRank() {
   if (songs.length < 2) {
-    alert('You need at least two songs to battle. Load defaults or import a list on the Favorites tab.');
+    alert('Load some songs first — go to Favorites → Reset list.');
     return;
   }
   const root = setupPairwiseRoot();
-  if (!root) {
-    alert('Pairwise UI is missing from the page.');
-    return;
-  }
+  if (!root) return;
+
   selectTab('battle');
   setBattleUIActive(true);
+
   const leftEl = el('pair-left');
   const rightEl = el('pair-right');
 
-  const pool = shuffleArray(songs.slice());
-  const ranked = [];
-  let comparisons = 0;
-  const totalSongs = songs.length;
+  // Restore or initialise Elo entries — each entry is { title, album, artist, elo, matches }
+  let state = eloStateLoad();
+  let entries, currentRound, currentMatchIdx, totalComparisons;
 
-  if (ranked.length === 0 && pool.length >= 2) {
-    const i1 = Math.floor(Math.random() * pool.length);
-    let i2 = Math.floor(Math.random() * (pool.length - 1));
-    if (i2 >= i1) i2 += 1;
-    const a = pool[i1];
-    const b = pool[i2];
-    const firstChoice = await askCompare(a, b, 0);
-    if (firstChoice === null) {
-      pairwiseStateSave({ poolIndex: 0, ranked, pool });
-      setBattleUIActive(false);
-      alert('Ranking paused — your progress is saved. Tap Start ranking when you want to continue.');
-      return;
+  if (state && Array.isArray(state.entries) && typeof state.round === 'number') {
+    entries          = state.entries;
+    currentRound     = state.round;
+    currentMatchIdx  = state.matchIdx || 0;
+    totalComparisons = state.totalComparisons || 0;
+    logDebug(`Resuming Elo: ${totalComparisons} matchups done, picking up at match ${currentMatchIdx + 1}`);
+
+    // Rebuild era wins from saved eraWins snapshot
+    if (typeof resetEraWins === 'function') resetEraWins();
+    if (state.eraWins && typeof eraWins !== 'undefined') {
+      Object.entries(state.eraWins).forEach(([k, v]) => { eraWins[k] = v; });
     }
-    const winner = firstChoice ? a : b;
-    const loser = firstChoice ? b : a;
-    ranked.push(winner, loser);
-    const winnerTitle = winner.title;
-    const loserTitle = loser.title;
-    for (let k = pool.length - 1; k >= 0; k--) {
-      if (pool[k].title === winnerTitle || pool[k].title === loserTitle) pool.splice(k, 1);
-    }
-    pairwiseStateSave({ poolIndex: 0, ranked, pool });
-    updatePairwiseChrome(ranked.length, totalSongs);
+    if (typeof lastShownLevel !== 'undefined') lastShownLevel = getCurrentLevel(totalComparisons).level;
+  } else {
+    // build entries from songs; merge with any previously saved Elo ratings
+    const savedRatings = eloRatingsLoad();
+    const ratingMap = {};
+    if (savedRatings) savedRatings.forEach(r => { ratingMap[r.title] = r; });
+
+    entries = songs.map(s => ({
+      title:   s.title,
+      album:   s.album,
+      artist:  s.artist || 'Taylor Swift',
+      elo:     (ratingMap[s.title] && ratingMap[s.title].elo) || 1500,
+      matches: (ratingMap[s.title] && ratingMap[s.title].matches) || 0,
+    }));
+    currentRound     = 0;
+    currentMatchIdx  = 0;
+    totalComparisons = 0;
   }
 
+  const matchesPerRound = Math.floor(entries.length / 2);
+
+  // ── comparison UI ──
   function flashChoice(tileEl) {
     tileEl.classList.add('choice-flash');
     setTimeout(() => tileEl.classList.remove('choice-flash'), 360);
   }
 
-  function renderRankedPreview(arr) {
-    try {
-      if (!rankedListEl) return;
-      rankedListEl.innerHTML = '';
-      arr.forEach((s, i) => {
-        const li = document.createElement('li'); 
-        li.textContent = `${s.title} — ${s.album}`;
-        rankedListEl.appendChild(li);
-      });
-    } catch (e) { console.warn('Failed to render ranked preview', e); }
-  }
-
-  // Using global pairwise state functions
-
-  function askCompare(a, b, rankedLenForUi) {
-    logDebug(`askCompare: ${a && a.title} vs ${b && b.title}`);
+  function askCompare(a, b) {
     return new Promise((resolve) => {
       (async () => {
-        let leftBtn;
-        let rightBtn;
+        let leftBtn, rightBtn;
         try {
-          const [leftArt, rightArt] = await Promise.all([
-            fetchAlbumArtUrl(a),
-            fetchAlbumArtUrl(b)
-          ]);
-          leftBtn = renderBattleTile(leftEl, a, leftArt);
+          const [leftArt, rightArt] = await Promise.all([fetchAlbumArtUrl(a), fetchAlbumArtUrl(b)]);
+          leftBtn  = renderBattleTile(leftEl, a, leftArt);
           rightBtn = renderBattleTile(rightEl, b, rightArt);
-        } catch (err) {
-          console.error('Pairwise render failed', err);
-          leftBtn = renderBattleTile(leftEl, a, null);
+        } catch (_) {
+          leftBtn  = renderBattleTile(leftEl, a, null);
           rightBtn = renderBattleTile(rightEl, b, null);
         }
-        comparisons += 1;
-        updatePairwiseChrome(
-          typeof rankedLenForUi === 'number' ? rankedLenForUi : ranked.length,
-          totalSongs
-        );
-        const onLeft = () => {
-          cleanup();
-          flashChoice(leftEl);
-          resolve(true);
-        };
-        const onRight = () => {
-          cleanup();
-          flashChoice(rightEl);
-          resolve(false);
-        };
-        const onKey = (ev) => {
+
+        const onLeft  = () => { cleanup(); flashChoice(leftEl);  resolve(true);  };
+        const onRight = () => { cleanup(); flashChoice(rightEl); resolve(false); };
+        const onKey   = (ev) => {
           if (ev.key === '1') return onLeft();
           if (ev.key === '2') return onRight();
           if (ev.key === 'Enter') {
-            const active = document.activeElement;
-            if (leftEl.contains(active)) return onLeft();
-            if (rightEl.contains(active)) return onRight();
+            if (leftEl.contains(document.activeElement))  return onLeft();
+            if (rightEl.contains(document.activeElement)) return onRight();
           }
-          if (ev.key === 'Escape') {
-            cleanup();
-            return resolve(null);
-          }
+          if (ev.key === 'Escape') { cleanup(); resolve(null); }
         };
         function cleanup() {
-          try {
-            leftBtn.removeEventListener('click', onLeft);
-            rightBtn.removeEventListener('click', onRight);
-            leftBtn.onclick = null;
-            rightBtn.onclick = null;
-          } catch (e) {}
-          document.removeEventListener('keydown', onKey);
-        }
-        try {
-          leftBtn.addEventListener('click', onLeft);
-          rightBtn.addEventListener('click', onRight);
-          leftBtn.onclick = onLeft;
-          rightBtn.onclick = onRight;
-        } catch (e) {}
-        document.addEventListener('keydown', onKey);
-      })().catch((err) => {
-        console.error('askCompare failed', err);
-        resolve(null);
-      });
-    });
-  }
-
-  for (let i = 0; i < pool.length; i++) {
-    const item = pool[i];
-    // binary search insert position in ranked
-    let lo = 0, hi = ranked.length;
-    while (lo < hi) {
-      const mid = Math.floor((lo + hi) / 2);
-      // persist current comparison state so we can resume even if the browser closes
-      try { pairwiseStateSave({ poolIndex: i, ranked, pool, lo, hi, comparisons }); } catch (e) {}
-      const preferLeft = await askCompare(item, ranked[mid], ranked.length);
-      if (preferLeft === null) {
-        pairwiseStateSave({ poolIndex: i, ranked, pool });
-        setBattleUIActive(false);
-        alert('Ranking paused — your progress is saved. Tap Start ranking to resume.');
-        return;
-      }
-      if (preferLeft) { hi = mid; } else { lo = mid + 1; }
-    }
-    ranked.splice(lo, 0, item);
-    // save both pairwise state and current ranking after each insertion
-    pairwiseStateSave({ poolIndex: i + 1, ranked, pool });
-    songs = ranked.slice(); // update main songs array
-    save(); // auto-save progress
-    updatePairwiseChrome(ranked.length, totalSongs);
-    renderRankedPreview(ranked);
-  }
-
-  setBattleUIActive(false);
-  songs = ranked;
-  render();
-  save();
-  pairwiseStateClear();
-  alert('You ranked every song this round — favorites updated. Peek at the Favorites tab for your live list!');
-}
-
-// resume pairwise if state available
-async function resumePairwiseIfNeeded() {
-  const s = pairwiseStateLoad();
-  if (!s) return false;
-  if (!confirm('A paused pairwise run was found. Resume?')) { pairwiseStateClear(); return false; }
-  if (!setupPairwiseRoot()) {
-    alert('Battle screen is missing from the page.');
-    return false;
-  }
-  selectTab('battle');
-  setBattleUIActive(true);
-  const leftEl = el('pair-left');
-  const rightEl = el('pair-right');
-  let { poolIndex, ranked, pool } = s;
-  let comparisons = 0;
-  const totalSongs = Math.max(songs.length, (ranked && pool) ? ranked.length + pool.length : 0);
-
-  function flashChoiceResume(tileEl) {
-    tileEl.classList.add('choice-flash');
-    setTimeout(() => tileEl.classList.remove('choice-flash'), 360);
-  }
-
-  function renderRankedPreviewResume(arr) {
-    try {
-      if (!rankedListEl) return;
-      rankedListEl.innerHTML = '';
-      arr.forEach((sng) => {
-        const li = document.createElement('li');
-        li.textContent = `${sng.title} — ${sng.album}`;
-        rankedListEl.appendChild(li);
-      });
-    } catch (e) { console.warn('Failed to render ranked preview', e); }
-  }
-
-  function askCompareResume(a, b, rankedLenForUi) {
-    logDebug(`askCompareResume: ${a && a.title} vs ${b && b.title}`);
-    return new Promise((resolve) => {
-      (async () => {
-        let leftBtn;
-        let rightBtn;
-        try {
-          const [leftArt, rightArt] = await Promise.all([
-            fetchAlbumArtUrl(a),
-            fetchAlbumArtUrl(b)
-          ]);
-          leftBtn = renderBattleTile(leftEl, a, leftArt);
-          rightBtn = renderBattleTile(rightEl, b, rightArt);
-        } catch (err) {
-          leftBtn = renderBattleTile(leftEl, a, null);
-          rightBtn = renderBattleTile(rightEl, b, null);
-        }
-        comparisons += 1;
-        updatePairwiseChrome(
-          typeof rankedLenForUi === 'number' ? rankedLenForUi : ranked.length,
-          totalSongs
-        );
-        const onLeft = () => {
-          cleanup();
-          flashChoiceResume(leftEl);
-          resolve(true);
-        };
-        const onRight = () => {
-          cleanup();
-          flashChoiceResume(rightEl);
-          resolve(false);
-        };
-        const onKey = (ev) => {
-          if (ev.key === '1') return onLeft();
-          if (ev.key === '2') return onRight();
-          if (ev.key === 'Enter') {
-            const active = document.activeElement;
-            if (leftEl.contains(active)) return onLeft();
-            if (rightEl.contains(active)) return onRight();
-          }
-          if (ev.key === 'Escape') {
-            cleanup();
-            return resolve(null);
-          }
-        };
-        function cleanup() {
-          try {
-            leftBtn.removeEventListener('click', onLeft);
-            rightBtn.removeEventListener('click', onRight);
-            leftBtn.onclick = null;
-            rightBtn.onclick = null;
-          } catch (e) {}
+          try { leftBtn.removeEventListener('click', onLeft); rightBtn.removeEventListener('click', onRight); } catch (_) {}
           document.removeEventListener('keydown', onKey);
         }
         leftBtn.addEventListener('click', onLeft);
         rightBtn.addEventListener('click', onRight);
-        leftBtn.onclick = onLeft;
-        rightBtn.onclick = onRight;
         document.addEventListener('keydown', onKey);
-      })().catch((err) => {
-        console.error('askCompareResume failed', err);
-        resolve(null);
-      });
+      })().catch(() => resolve(null));
     });
   }
 
-  for (let i = poolIndex || 0; i < pool.length; i++) {
-    const item = pool[i];
-    let lo = (s && typeof s.lo === 'number' && s.poolIndex === i) ? s.lo : 0;
-    let hi = (s && typeof s.hi === 'number' && s.poolIndex === i) ? s.hi : ranked.length;
-    while (lo < hi) {
-      const mid = Math.floor((lo + hi) / 2);
-      try { pairwiseStateSave({ poolIndex: i, ranked, pool, lo, hi, comparisons }); } catch (e) {}
-      const preferLeft = await askCompareResume(item, ranked[mid], ranked.length);
-      if (preferLeft === null) {
-        pairwiseStateSave({ poolIndex: i, ranked, pool });
-        setBattleUIActive(false);
-        alert('Ranking paused — your progress is saved.');
-        return true;
-      }
-      if (preferLeft) { hi = mid; } else { lo = mid + 1; }
-    }
-    ranked.splice(lo, 0, item);
-    pairwiseStateSave({ poolIndex: i + 1, ranked, pool });
-    songs = ranked.slice();
+  function applyEloToSongs() {
+    const ranked = sortedByElo(entries);
+    songs = ranked.map(e => ({
+      title:  e.title,
+      album:  e.album,
+      artist: e.artist,
+    }));
+    render();
     save();
-    updatePairwiseChrome(ranked.length, totalSongs);
-    renderRankedPreviewResume(ranked);
+    eloRatingsSave(entries);
   }
+
+  function syncRankedPreview() {
+    if (!rankedListEl) return;
+    rankedListEl.innerHTML = '';
+    sortedByElo(entries).forEach((e) => {
+      const li = document.createElement('li');
+      li.textContent = `${e.title} — ${e.album}`;
+      rankedListEl.appendChild(li);
+    });
+  }
+
+  // ── main loop: Swiss rounds ──
+  // When resuming mid-round, we saved the pairing order (as title pairs) so we
+  // replay exactly the same matchups rather than regenerating with new randomness.
+  let savedPairTitles = (state && state.pairTitles) || null;
+
+  for (let r = currentRound; r < TOTAL_ROUNDS; r++) {
+    const K = BASE_K * Math.pow(0.88, r);
+
+    let pairs;
+    if (savedPairTitles && r === currentRound) {
+      // rebuild pair references from saved titles
+      const titleMap = {};
+      entries.forEach(e => { titleMap[e.title] = e; });
+      pairs = savedPairTitles
+        .map(([tA, tB]) => [titleMap[tA], titleMap[tB]])
+        .filter(([a, b]) => a && b);
+      savedPairTitles = null;
+    } else {
+      pairs = buildSwissPairings(entries);
+    }
+
+    // serialisable snapshot of pairing order for resume
+    const pairTitles = pairs.map(([a, b]) => [a.title, b.title]);
+
+    const startIdx = (r === currentRound) ? currentMatchIdx : 0;
+
+    for (let m = startIdx; m < pairs.length; m++) {
+      const [a, b] = pairs[m];
+
+      const eraWinsSnapshot = typeof eraWins !== 'undefined' ? { ...eraWins } : {};
+      eloStateSave({ entries, round: r, matchIdx: m, totalComparisons, pairTitles, eraWins: eraWinsSnapshot });
+      updateEloChrome(r, TOTAL_ROUNDS, m, matchesPerRound, totalComparisons);
+
+      const preferLeft = await askCompare(a, b);
+
+      if (preferLeft === null) {
+        eloStateSave({ entries, round: r, matchIdx: m, totalComparisons, pairTitles, eraWins: eraWinsSnapshot });
+        applyEloToSongs();
+        setBattleUIActive(false);
+        logDebug(`Paused at matchup ${totalComparisons}`);
+        return;
+      }
+
+      const aWon = preferLeft;
+      const winner = aWon ? a : b;
+      const winnerTileEl = aWon ? leftEl : rightEl;
+      const [newA, newB] = eloUpdate(a.elo, b.elo, aWon, K);
+      a.elo = newA;
+      b.elo = newB;
+      a.matches += 1;
+      b.matches += 1;
+      totalComparisons += 1;
+
+      // Era & Identity hooks
+      if (typeof recordWin === 'function') recordWin(winner);
+      if (typeof setProgressEraGlow === 'function') setProgressEraGlow(winner);
+      if (typeof spawnBattleParticles === 'function') spawnBattleParticles(winnerTileEl, winner);
+      const streak = typeof recordStreakPick === 'function' ? recordStreakPick(winner) : null;
+      if (streak && typeof showStreakAnimation === 'function') showStreakAnimation(streak.era, streak.count);
+      if (typeof checkLevelUp === 'function') checkLevelUp(totalComparisons);
+      if (typeof maybeShowTeaser === 'function') maybeShowTeaser(totalComparisons);
+    }
+
+    // end of round — update rankings and save
+    applyEloToSongs();
+    syncRankedPreview();
+    logDebug(`Phase ${r + 1} complete — ${totalComparisons} total comparisons`);
+
+    currentMatchIdx = 0;
+  }
+
+  // ── all rounds complete ──
   setBattleUIActive(false);
-  songs = ranked;
-  render();
-  save();
-  pairwiseStateClear();
-  alert('Round complete — your live favorites are updated!');
-  return true;
+  applyEloToSongs();
+  syncRankedPreview();
+  eloStateClear();
+  logDebug(`Ranking complete! ${totalComparisons} total comparisons.`);
+
+  const primaryEra = typeof getPrimaryEra === 'function' ? getPrimaryEra() : '';
+  const personality = typeof getPersonalityGroup === 'function' && typeof PERSONALITIES !== 'undefined'
+    ? PERSONALITIES[getPersonalityGroup(primaryEra)] : null;
+
+  const sub = el('pairwise-sub');
+  if (sub) {
+    sub.textContent = personality
+      ? `You are ${personality.title} — a ${primaryEra} human.`
+      : 'All done — check your Favorites tab!';
+  }
+  const idleText = document.querySelector('.pairwise-idle-text');
+  if (idleText) {
+    idleText.textContent = personality
+      ? `${personality.desc} Check the Favorites tab for your Eras Identity Card!`
+      : `Ranked in ${totalComparisons} matchups! Check the Favorites tab.`;
+  }
+  const startBtn = el('start-battle');
+  if (startBtn) startBtn.textContent = 'Rank again';
+
+  refreshEraCard();
 }
 
 function exportText() {
@@ -738,16 +715,141 @@ function shareURL() {
   } catch (err) { alert('Failed to copy share link'); }
 }
 
-function importFile(file) {
-  const reader = new FileReader();
-  reader.onload = (ev) => {
-    try {
-      const data = JSON.parse(ev.target.result);
-      if (Array.isArray(data)) { songs = data; render(); save(); }
-      else alert('Invalid file format');
-    } catch (err) { alert('Failed to parse file'); }
-  };
-  reader.readAsText(file);
+function buildRankedText() {
+  return songs.map((s, i) =>
+    `${i + 1}. ${s.title} — ${s.album}`
+  ).join('\n');
+}
+
+function shareTextToClipboard() {
+  const header = '🎶 My Taylor Swift Song Ranking\n\n';
+  const txt = header + buildRankedText();
+  navigator.clipboard.writeText(txt).then(() => {
+    if (shareTextBtn) {
+      shareTextBtn.querySelector('.fav-share-label').textContent = 'Copied!';
+      setTimeout(() => {
+        shareTextBtn.querySelector('.fav-share-label').textContent = 'Copy text';
+      }, 1500);
+    }
+  }).catch(() => alert('Could not copy to clipboard'));
+}
+
+function nativeShare() {
+  const txt = buildRankedText();
+  if (navigator.share) {
+    navigator.share({
+      title: 'My Taylor Swift Song Ranking',
+      text: txt,
+    }).catch(() => {});
+  } else {
+    shareTextToClipboard();
+  }
+}
+
+function exportPdf() {
+  const topN = songs.slice(0, 50);
+  const pageW = 595;
+  const pageH = 842;
+  const margin = 48;
+  const colW = (pageW - margin * 2) / 2;
+
+  const canvas = document.createElement('canvas');
+  canvas.width = pageW * 2;
+  canvas.height = pageH * 2;
+  const ctx = canvas.getContext('2d');
+  ctx.scale(2, 2);
+
+  // background
+  const grad = ctx.createLinearGradient(0, 0, 0, pageH);
+  grad.addColorStop(0, '#fff4f8');
+  grad.addColorStop(1, '#ffe8f3');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, pageW, pageH);
+
+  // decorative header bar
+  ctx.fillStyle = '#9323b0';
+  ctx.fillRect(0, 0, pageW, 4);
+
+  // title
+  ctx.fillStyle = '#581c87';
+  ctx.font = 'italic 700 22px "Noto Serif", Georgia, serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('My Taylor Swift Song Ranking', pageW / 2, 52);
+
+  // subtitle
+  ctx.fillStyle = 'rgba(91, 0, 81, 0.5)';
+  ctx.font = '500 10px "Plus Jakarta Sans", sans-serif';
+  ctx.fillText(`Top ${topN.length} songs · ${new Date().toLocaleDateString()}`, pageW / 2, 70);
+
+  // divider line
+  ctx.strokeStyle = 'rgba(147, 35, 176, 0.15)';
+  ctx.lineWidth = 0.5;
+  ctx.beginPath();
+  ctx.moveTo(margin, 82);
+  ctx.lineTo(pageW - margin, 82);
+  ctx.stroke();
+
+  // songs in two columns
+  const startY = 100;
+  const lineH = 14.5;
+  const half = Math.ceil(topN.length / 2);
+
+  topN.forEach((song, i) => {
+    const col = i < half ? 0 : 1;
+    const row = i < half ? i : i - half;
+    const x = margin + col * colW;
+    const y = startY + row * lineH;
+
+    // rank number
+    ctx.textAlign = 'right';
+    ctx.fillStyle = '#9323b0';
+    ctx.font = '700 9px "Plus Jakarta Sans", sans-serif';
+    ctx.fillText(`${i + 1}.`, x + 20, y);
+
+    // song title
+    ctx.textAlign = 'left';
+    ctx.fillStyle = '#5b0051';
+    ctx.font = '600 9px Manrope, sans-serif';
+    const maxTitleW = colW - 65;
+    let title = song.title;
+    while (ctx.measureText(title).width > maxTitleW && title.length > 3) {
+      title = title.slice(0, -2) + '…';
+    }
+    ctx.fillText(title, x + 25, y);
+
+    // album
+    ctx.fillStyle = 'rgba(91, 0, 81, 0.45)';
+    ctx.font = '500 7px "Plus Jakarta Sans", sans-serif';
+    let album = song.album || '';
+    const maxAlbumW = colW - 65;
+    while (ctx.measureText(album).width > maxAlbumW && album.length > 3) {
+      album = album.slice(0, -2) + '…';
+    }
+    ctx.fillText(album, x + 25, y + 9);
+  });
+
+  // footer
+  const footY = pageH - 24;
+  ctx.textAlign = 'center';
+  ctx.fillStyle = 'rgba(91, 0, 81, 0.35)';
+  ctx.font = '500 8px "Plus Jakarta Sans", sans-serif';
+  ctx.fillText('Made with The Archive — Taylor Swift Song Ranker', pageW / 2, footY);
+
+  // convert to PDF-like download via canvas→blob
+  canvas.toBlob((blob) => {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'taylor-swift-song-ranking.png';
+    a.click();
+    URL.revokeObjectURL(url);
+    if (exportPdfBtn) {
+      exportPdfBtn.querySelector('.fav-share-label').textContent = 'Downloaded!';
+      setTimeout(() => {
+        exportPdfBtn.querySelector('.fav-share-label').textContent = 'Download PDF';
+      }, 1500);
+    }
+  }, 'image/png');
 }
 
 // wire UI with guards so missing elements don't break the whole script
@@ -756,24 +858,68 @@ if (saveBtn) saveBtn.addEventListener('click', save);
 if (shareBtn) shareBtn.addEventListener('click', shareURL);
 if (exportJsonBtn) exportJsonBtn.addEventListener('click', exportJson);
 if (exportCsvBtn) exportCsvBtn.addEventListener('click', exportCsv);
-if (importInput) importInput.addEventListener('change', (e) => { const f = e.target.files[0]; if (f) importFile(f); });
+if (exportPdfBtn) exportPdfBtn.addEventListener('click', exportPdf);
+if (shareTextBtn) shareTextBtn.addEventListener('click', shareTextToClipboard);
+if (shareNativeBtn) shareNativeBtn.addEventListener('click', nativeShare);
 async function startBattleFlow() {
   try {
-    const resumed = await resumePairwiseIfNeeded();
-    if (!resumed) await pairwiseRank();
+    await eloSwissRank();
   } catch (err) {
-    console.error('Pairwise start failed', err);
-    logDebug('Pairwise start failed: ' + (err && err.message));
-    alert('Could not start ranking: ' + (err && err.message));
+    console.error('Battle start failed', err);
+    logDebug('Battle start failed: ' + (err && err.message));
   }
 }
 
-if (startBattleBtn) startBattleBtn.addEventListener('click', () => startBattleFlow());
+if (startBattleBtn) startBattleBtn.addEventListener('click', () => {
+  if (startBattleBtn.textContent.trim() === 'Rank again') {
+    eloStateClear();
+    eloRatingsClear();
+    if (typeof resetEraWins === 'function') resetEraWins();
+    if (typeof lastShownLevel !== 'undefined') lastShownLevel = 0;
+  }
+  startBattleFlow();
+});
 
 document.querySelectorAll('.app-tab[data-tab]').forEach((btn) => {
   btn.addEventListener('click', () => {
     const tab = btn.getAttribute('data-tab');
     if (tab === 'battle' || tab === 'favorites') selectTab(tab);
+  });
+});
+
+// ─── Era Identity Card on Favorites tab ───
+function refreshEraCard() {
+  const section = el('era-card-section');
+  const preview = el('era-card-preview');
+  if (!section || !preview) return;
+  if (typeof getEraScores !== 'function') return;
+  const scores = getEraScores();
+  if (!scores.length || scores[0].wins < 5) { section.style.display = 'none'; return; }
+  section.style.display = '';
+  try {
+    const card = generateEraCard();
+    const ctx = preview.getContext('2d');
+    preview.width = card.width;
+    preview.height = card.height;
+    preview.style.width = '100%';
+    preview.style.height = 'auto';
+    ctx.drawImage(card, 0, 0);
+  } catch (e) { console.warn('Era card render failed', e); }
+}
+
+const downloadEraCardBtn = el('download-era-card');
+const shareEraCardBtn = el('share-era-card');
+if (downloadEraCardBtn) downloadEraCardBtn.addEventListener('click', () => {
+  if (typeof downloadEraCard === 'function') downloadEraCard();
+});
+if (shareEraCardBtn) shareEraCardBtn.addEventListener('click', () => {
+  if (typeof shareEraCard === 'function') shareEraCard();
+});
+
+// refresh era card when switching to favorites tab
+document.querySelectorAll('.app-tab[data-tab]').forEach((btn) => {
+  btn.addEventListener('click', () => {
+    if (btn.getAttribute('data-tab') === 'favorites') refreshEraCard();
   });
 });
 
@@ -790,51 +936,39 @@ function waitForPairwiseElements(timeout = 2000) {
   });
 }
 
-// load existing or default / support ?data=encoded query
+// ─── Initialisation ───
 (function init() {
   selectTab('battle');
+
+  // shared link override
   const params = new URLSearchParams(location.search);
   const dataParam = params.get('data');
   if (dataParam) {
-    try {
-      songs = JSON.parse(decodeURIComponent(dataParam));
-      render();
-      save();
-      return;
-    } catch (err) {
-      console.warn('Invalid shared data, loading stored/default');
-    }
+    try { songs = JSON.parse(decodeURIComponent(dataParam)); render(); save(); return; }
+    catch (_) { console.warn('Invalid shared data'); }
   }
+
+  // load songs from storage or defaults
   const stored = localStorage.getItem(STORAGE_KEY);
   if (stored) {
-    try {
-      songs = JSON.parse(stored);
-      render();
-      return;
-    } catch (err) {
-      console.warn('Invalid stored data, loading default');
-    }
+    try { songs = JSON.parse(stored); render(); } catch (_) {}
   }
-  loadDefault()
-    .then(() => {
-      const saved = pairwiseStateLoad();
-      if (saved) {
-        logDebug('Found saved pairwise state; not auto-starting');
-        return;
-      }
+
+  // if no songs yet, fetch the default list
+  const needsDefaults = !songs.length;
+  const ready = needsDefaults ? loadDefault() : Promise.resolve();
+
+  ready.then(() => {
+    // if there is saved Elo/Swiss progress, auto-resume immediately
+    const saved = eloStateLoad();
+    if (saved) {
+      logDebug('Resuming saved ranking session');
       waitForPairwiseElements(2500)
-        .then(() => {
-          setTimeout(() => {
-            startBattleFlow();
-          }, 120);
-        })
-        .catch((err) => {
-          console.warn('Pairwise DOM not ready for auto-start', err);
-          logDebug('Pairwise DOM not ready: ' + (err && err.message));
-        });
-    })
-    .catch((err) => {
-      console.error('Failed to load defaults during init', err);
-      logDebug('Init failed to load defaults: ' + (err && err.message));
-    });
+        .then(() => setTimeout(startBattleFlow, 80))
+        .catch(() => logDebug('Battle DOM not ready'));
+    }
+    // otherwise just show the idle screen — user clicks "Start ranking"
+  }).catch((err) => {
+    logDebug('Init failed: ' + (err && err.message));
+  });
 })();

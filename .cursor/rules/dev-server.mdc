@@ -1,0 +1,34 @@
+---
+description: How to launch the local dev server to preview the app in the browser
+alwaysApply: true
+---
+
+# Launching the Dev Server
+
+This project doesn't have `http-server` installed as a local dependency, so `npx http-server` can hang while downloading.
+
+## Reliable method (Python — always available on macOS)
+
+```bash
+cd public && python3 -m http.server 8081
+```
+
+Then open http://localhost:8081 in the browser:
+
+```bash
+open http://localhost:8081
+```
+
+## When the user says "push to browser", "open the app", or "let me see it"
+
+1. Check if anything is already running on port 8081: `lsof -i :8081`
+2. If not, start the Python server in the `public/` folder (background it so the terminal stays usable).
+3. Open the browser with `open http://localhost:8081`.
+
+## Stopping the server
+
+Kill the process on port 8081:
+
+```bash
+lsof -ti :8081 | xargs kill
+```
