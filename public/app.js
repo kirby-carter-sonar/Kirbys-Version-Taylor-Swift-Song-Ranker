@@ -2,6 +2,46 @@ const STORAGE_KEY = 'ts-song-ranker:v1';
 
 const el = (id) => document.getElementById(id);
 
+/** Fisher–Yates shuffle — random order for pairwise pool (not album order). */
+function shuffleArray(arr) {
+  const a = arr;
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function setBattleUIActive(active) {
+  const idle = el('pairwise-idle');
+  const cards = el('pairwise-cards');
+  const ctrls = el('pair-controls');
+  if (active) {
+    idle?.classList.add('pairwise-idle--hidden');
+    cards?.classList.remove('pairwise-cards--hidden');
+    ctrls?.classList.remove('pair-controls--hidden');
+  } else {
+    idle?.classList.remove('pairwise-idle--hidden');
+    cards?.classList.add('pairwise-cards--hidden');
+    ctrls?.classList.add('pair-controls--hidden');
+  }
+}
+
+function selectTab(which) {
+  const battlePanel = el('panel-battle');
+  const favPanel = el('panel-favorites');
+  const battleBtn = el('tab-battle-btn');
+  const favBtn = el('tab-favorites-btn');
+  if (!battlePanel || !favPanel || !battleBtn || !favBtn) return;
+  const showBattle = which === 'battle';
+  battlePanel.hidden = !showBattle;
+  favPanel.hidden = showBattle;
+  battlePanel.classList.toggle('tab-panel--active', showBattle);
+  favPanel.classList.toggle('tab-panel--active', !showBattle);
+  battleBtn.setAttribute('aria-selected', showBattle ? 'true' : 'false');
+  favBtn.setAttribute('aria-selected', showBattle ? 'false' : 'true');
+}
+
 /** iTunes Search API — album artwork, cached per artist+album (CORS allowed for browsers). */
 const albumArtCache = new Map();
 
@@ -62,7 +102,7 @@ async function fetchAlbumArtUrl(song) {
   }
 }
 
-function updatePairwiseChrome(rankedLen, totalSongs, comparisons) {
+function updatePairwiseChrome(rankedLen, totalSongs) {
   const total = Math.max(0, totalSongs | 0);
   const pct = total ? Math.round((Math.min(rankedLen, total) / total) * 100) : 0;
   const bar = el('pair-progress');
@@ -75,10 +115,6 @@ function updatePairwiseChrome(rankedLen, totalSongs, comparisons) {
   if (lbl) lbl.textContent = `${pct}% ranked`;
   const pill = el('pair-ranked-text');
   if (pill) pill.textContent = `Ranked ${rankedLen}/${total || '—'} songs`;
-  const counter = el('pair-counter');
-  if (counter && typeof comparisons === 'number') {
-    counter.textContent = `Comparisons: ${comparisons} (tap or 1 / 2)`;
-  }
 }
 
 function renderBattleTile(tileEl, song, imageUrl) {
@@ -140,7 +176,7 @@ const shareBtn = el('share');
 const exportJsonBtn = el('export-json');
 const exportCsvBtn = el('export-csv');
 const importInput = el('import-file');
-const pairwiseBtn = el('pairwise');
+const startBattleBtn = el('start-battle');
 
 let songs = [];
 let dragSrcIndex = null;
@@ -345,43 +381,48 @@ function pairwiseStateLoad() {
 }
 function pairwiseStateClear() { try { localStorage.removeItem(PAIRWISE_KEY); } catch (e) {} }
 
-// Pairwise ranking overlay setup
-function buildPairwiseOverlay() {
-  // Inline pairwise panel exists in the page (we replaced the list). Select and return it.
-  const overlay = document.querySelector('[data-pairwise="overlay"]');
-  if (!overlay) return null;
+function setupPairwiseRoot() {
+  const root = document.querySelector('[data-pairwise="root"]');
+  if (!root) return null;
   const cancelBtn = el('pair-cancel');
   if (cancelBtn) {
-    // ensure only one handler
     cancelBtn.replaceWith(cancelBtn.cloneNode(true));
     const newBtn = el('pair-cancel');
     newBtn.addEventListener('click', () => {
-      overlay.style.display = 'none';
-      overlay.setAttribute('aria-hidden', 'true');
+      document.dispatchEvent(
+        new KeyboardEvent('keydown', {
+          key: 'Escape',
+          code: 'Escape',
+          bubbles: true,
+          cancelable: true
+        })
+      );
     });
   }
-  return overlay;
+  return root;
 }
 
 // Pairwise rank using insertion: O(n log n) comparisons
 async function pairwiseRank() {
-  const overlay = buildPairwiseOverlay();
-  if (!overlay) {
+  if (songs.length < 2) {
+    alert('You need at least two songs to battle. Load defaults or import a list on the Favorites tab.');
+    return;
+  }
+  const root = setupPairwiseRoot();
+  if (!root) {
     alert('Pairwise UI is missing from the page.');
     return;
   }
-  overlay.style.display = 'block';
-  overlay.setAttribute('aria-hidden', 'false');
+  selectTab('battle');
+  setBattleUIActive(true);
   const leftEl = el('pair-left');
   const rightEl = el('pair-right');
 
-  // We'll build ranked = [] by inserting songs one at a time using binary search with comparisons
-  const pool = songs.slice();
+  const pool = shuffleArray(songs.slice());
   const ranked = [];
   let comparisons = 0;
   const totalSongs = songs.length;
 
-  // initial random head-to-head to get ranking started if nothing is ranked yet
   if (ranked.length === 0 && pool.length >= 2) {
     const i1 = Math.floor(Math.random() * pool.length);
     let i2 = Math.floor(Math.random() * (pool.length - 1));
@@ -390,23 +431,21 @@ async function pairwiseRank() {
     const b = pool[i2];
     const firstChoice = await askCompare(a, b, 0);
     if (firstChoice === null) {
-      // paused during initial comparison
       pairwiseStateSave({ poolIndex: 0, ranked, pool });
-      overlay.style.display = 'none';
-      overlay.setAttribute('aria-hidden', 'true');
-      alert('Pairwise ranking paused and saved. You can resume later.');
+      setBattleUIActive(false);
+      alert('Ranking paused — your progress is saved. Tap Start ranking when you want to continue.');
       return;
     }
     const winner = firstChoice ? a : b;
     const loser = firstChoice ? b : a;
-    ranked.push(winner);
-    // remove both from pool
-    const winnerTitle = winner.title, loserTitle = loser.title;
+    ranked.push(winner, loser);
+    const winnerTitle = winner.title;
+    const loserTitle = loser.title;
     for (let k = pool.length - 1; k >= 0; k--) {
       if (pool[k].title === winnerTitle || pool[k].title === loserTitle) pool.splice(k, 1);
     }
     pairwiseStateSave({ poolIndex: 0, ranked, pool });
-    updatePairwiseChrome(ranked.length, totalSongs, comparisons);
+    updatePairwiseChrome(ranked.length, totalSongs);
   }
 
   function flashChoice(tileEl) {
@@ -449,8 +488,7 @@ async function pairwiseRank() {
         comparisons += 1;
         updatePairwiseChrome(
           typeof rankedLenForUi === 'number' ? rankedLenForUi : ranked.length,
-          totalSongs,
-          comparisons
+          totalSongs
         );
         const onLeft = () => {
           cleanup();
@@ -508,11 +546,9 @@ async function pairwiseRank() {
       try { pairwiseStateSave({ poolIndex: i, ranked, pool, lo, hi, comparisons }); } catch (e) {}
       const preferLeft = await askCompare(item, ranked[mid], ranked.length);
       if (preferLeft === null) {
-        // user pressed Escape to cancel the whole run — save progress and exit
         pairwiseStateSave({ poolIndex: i, ranked, pool });
-        overlay.style.display = 'none';
-        overlay.setAttribute('aria-hidden', 'true');
-        alert('Pairwise ranking paused and saved. You can resume later.');
+        setBattleUIActive(false);
+        alert('Ranking paused — your progress is saved. Tap Start ranking to resume.');
         return;
       }
       if (preferLeft) { hi = mid; } else { lo = mid + 1; }
@@ -522,17 +558,16 @@ async function pairwiseRank() {
     pairwiseStateSave({ poolIndex: i + 1, ranked, pool });
     songs = ranked.slice(); // update main songs array
     save(); // auto-save progress
-    updatePairwiseChrome(ranked.length, totalSongs, comparisons);
-    // update preview
+    updatePairwiseChrome(ranked.length, totalSongs);
     renderRankedPreview(ranked);
   }
 
-  // finished
-  overlay.style.display = 'none';
-  overlay.setAttribute('aria-hidden', 'true');
-  songs = ranked; render(); save();
+  setBattleUIActive(false);
+  songs = ranked;
+  render();
+  save();
   pairwiseStateClear();
-  alert(`Pairwise ranking complete — ${comparisons} comparisons. Results saved.`);
+  alert('You ranked every song this round — favorites updated. Peek at the Favorites tab for your live list!');
 }
 
 // resume pairwise if state available
@@ -540,9 +575,12 @@ async function resumePairwiseIfNeeded() {
   const s = pairwiseStateLoad();
   if (!s) return false;
   if (!confirm('A paused pairwise run was found. Resume?')) { pairwiseStateClear(); return false; }
-  const overlay = buildPairwiseOverlay();
-  overlay.style.display = 'block';
-  overlay.setAttribute('aria-hidden', 'false');
+  if (!setupPairwiseRoot()) {
+    alert('Battle screen is missing from the page.');
+    return false;
+  }
+  selectTab('battle');
+  setBattleUIActive(true);
   const leftEl = el('pair-left');
   const rightEl = el('pair-right');
   let { poolIndex, ranked, pool } = s;
@@ -586,8 +624,7 @@ async function resumePairwiseIfNeeded() {
         comparisons += 1;
         updatePairwiseChrome(
           typeof rankedLenForUi === 'number' ? rankedLenForUi : ranked.length,
-          totalSongs,
-          comparisons
+          totalSongs
         );
         const onLeft = () => {
           cleanup();
@@ -643,9 +680,8 @@ async function resumePairwiseIfNeeded() {
       const preferLeft = await askCompareResume(item, ranked[mid], ranked.length);
       if (preferLeft === null) {
         pairwiseStateSave({ poolIndex: i, ranked, pool });
-        overlay.style.display = 'none';
-        overlay.setAttribute('aria-hidden', 'true');
-        alert('Pairwise ranking paused and saved.');
+        setBattleUIActive(false);
+        alert('Ranking paused — your progress is saved.');
         return true;
       }
       if (preferLeft) { hi = mid; } else { lo = mid + 1; }
@@ -654,16 +690,15 @@ async function resumePairwiseIfNeeded() {
     pairwiseStateSave({ poolIndex: i + 1, ranked, pool });
     songs = ranked.slice();
     save();
-    updatePairwiseChrome(ranked.length, totalSongs, comparisons);
+    updatePairwiseChrome(ranked.length, totalSongs);
     renderRankedPreviewResume(ranked);
   }
-  overlay.style.display = 'none';
-  overlay.setAttribute('aria-hidden', 'true');
+  setBattleUIActive(false);
   songs = ranked;
   render();
   save();
   pairwiseStateClear();
-  alert('Resumed pairwise ranking complete.');
+  alert('Round complete — your live favorites are updated!');
   return true;
 }
 
@@ -722,7 +757,25 @@ if (shareBtn) shareBtn.addEventListener('click', shareURL);
 if (exportJsonBtn) exportJsonBtn.addEventListener('click', exportJson);
 if (exportCsvBtn) exportCsvBtn.addEventListener('click', exportCsv);
 if (importInput) importInput.addEventListener('change', (e) => { const f = e.target.files[0]; if (f) importFile(f); });
-if (pairwiseBtn) pairwiseBtn.addEventListener('click', async () => { try { const resumed = await resumePairwiseIfNeeded(); if (!resumed) await pairwiseRank(); } catch (err) { console.error('Pairwise start failed', err); logDebug('Pairwise start failed: ' + (err && err.message)); alert('Pairwise failed to start: ' + (err && err.message)); } });
+async function startBattleFlow() {
+  try {
+    const resumed = await resumePairwiseIfNeeded();
+    if (!resumed) await pairwiseRank();
+  } catch (err) {
+    console.error('Pairwise start failed', err);
+    logDebug('Pairwise start failed: ' + (err && err.message));
+    alert('Could not start ranking: ' + (err && err.message));
+  }
+}
+
+if (startBattleBtn) startBattleBtn.addEventListener('click', () => startBattleFlow());
+
+document.querySelectorAll('.app-tab[data-tab]').forEach((btn) => {
+  btn.addEventListener('click', () => {
+    const tab = btn.getAttribute('data-tab');
+    if (tab === 'battle' || tab === 'favorites') selectTab(tab);
+  });
+});
 
 // helper: wait for pairwise overlay elements to exist before auto-starting
 function waitForPairwiseElements(timeout = 2000) {
@@ -739,28 +792,49 @@ function waitForPairwiseElements(timeout = 2000) {
 
 // load existing or default / support ?data=encoded query
 (function init() {
+  selectTab('battle');
   const params = new URLSearchParams(location.search);
   const dataParam = params.get('data');
   if (dataParam) {
-    try { songs = JSON.parse(decodeURIComponent(dataParam)); render(); save(); return; } catch (err) { console.warn('Invalid shared data, loading stored/default'); }
+    try {
+      songs = JSON.parse(decodeURIComponent(dataParam));
+      render();
+      save();
+      return;
+    } catch (err) {
+      console.warn('Invalid shared data, loading stored/default');
+    }
   }
   const stored = localStorage.getItem(STORAGE_KEY);
   if (stored) {
-    try { songs = JSON.parse(stored); render(); return; } catch (err) { console.warn('Invalid stored data, loading default'); }
-  }
-  // load default and then auto-start pairwise unless there's a paused run
-  loadDefault().then(() => {
-    const saved = pairwiseStateLoad();
-    if (saved) {
-      logDebug('Found saved pairwise state; not auto-starting');
-      // don't auto-start if there's a saved run: let user resume
+    try {
+      songs = JSON.parse(stored);
+      render();
       return;
+    } catch (err) {
+      console.warn('Invalid stored data, loading default');
     }
-    // start pairwise automatically with two random songs to begin, but ensure DOM elements are present
-    waitForPairwiseElements(2500).then(() => {
-      setTimeout(async () => {
-        try { logDebug('Auto-starting pairwiseRank'); await pairwiseRank(); } catch (err) { console.error('Auto pairwise failed', err); logDebug('Auto pairwise failed: ' + (err && err.message)); alert('Auto pairwise failed: ' + (err && err.message)); }
-      }, 120);
-    }).catch((err) => { console.warn('Pairwise DOM not ready for auto-start', err); logDebug('Pairwise DOM not ready: ' + (err && err.message)); });
-  }).catch((err) => { console.error('Failed to load defaults during init', err); logDebug('Init failed to load defaults: ' + (err && err.message)); });
+  }
+  loadDefault()
+    .then(() => {
+      const saved = pairwiseStateLoad();
+      if (saved) {
+        logDebug('Found saved pairwise state; not auto-starting');
+        return;
+      }
+      waitForPairwiseElements(2500)
+        .then(() => {
+          setTimeout(() => {
+            startBattleFlow();
+          }, 120);
+        })
+        .catch((err) => {
+          console.warn('Pairwise DOM not ready for auto-start', err);
+          logDebug('Pairwise DOM not ready: ' + (err && err.message));
+        });
+    })
+    .catch((err) => {
+      console.error('Failed to load defaults during init', err);
+      logDebug('Init failed to load defaults: ' + (err && err.message));
+    });
 })();

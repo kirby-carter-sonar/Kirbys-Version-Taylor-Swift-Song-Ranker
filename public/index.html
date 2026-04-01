@@ -11,107 +11,123 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <main class="container">
-    <header class="header">
-      <div>
-        <h1>Taylor Swift Song Ranker</h1>
-        <p class="lead">Give your favorite songs cute rankings — drag, drop, and share.</p>
+  <div class="app-shell">
+    <!-- Tab 1: Battle (default) — pairwise across all eras -->
+    <section id="panel-battle" class="tab-panel tab-panel--active" role="tabpanel" aria-labelledby="tab-battle-btn" data-tab-panel="battle">
+      <div data-pairwise="root" class="battle-root">
+        <div class="pairwise-shell">
+          <header class="pairwise-topbar">
+            <div class="pairwise-topbar-row">
+              <div class="pairwise-brand">
+                <span class="material-symbols-outlined pairwise-brand-icon" aria-hidden="true">history_edu</span>
+                <span class="pairwise-brand-title">The Archive</span>
+              </div>
+            </div>
+            <div class="pairwise-progress-block">
+              <div class="pair-progress-wrap" id="pair-progress-wrap" role="progressbar" aria-valuemin="0" aria-valuemax="100">
+                <div class="pair-progress" id="pair-progress" style="width:0%"></div>
+              </div>
+              <div class="pairwise-progress-label label-caps" id="pair-progress-label">0% ranked</div>
+            </div>
+          </header>
+          <main class="pairwise-main">
+            <div class="pairwise-pill label-caps" id="pair-ranked-pill">
+              <span class="material-symbols-outlined" aria-hidden="true">bar_chart</span>
+              <span id="pair-ranked-text">Ranked 0 songs</span>
+            </div>
+            <div class="pairwise-prompt">
+              <h2 class="pairwise-headline">Choose your favorite</h2>
+              <p class="pairwise-sub" id="pairwise-sub">Random matchups across every era — tap the song you love more.</p>
+            </div>
+            <div class="pairwise-idle" id="pairwise-idle">
+              <p class="pairwise-idle-text">Ready when you are — each round pits two different songs so you build one list across every Taylor era.</p>
+              <button type="button" class="pairwise-start-btn" id="start-battle">Start ranking</button>
+            </div>
+            <div class="pairwise-cards pairwise-cards--hidden" id="pairwise-cards" aria-live="polite">
+              <div class="pair-tile-wrap">
+                <div class="pair-tile" id="pair-left" role="group" aria-label="First choice"></div>
+              </div>
+              <div class="pair-vs" aria-hidden="true">
+                <span class="pair-vs-line"></span>
+                <span class="pair-vs-badge label-caps">VS</span>
+                <span class="pair-vs-line"></span>
+              </div>
+              <div class="pair-tile-wrap">
+                <div class="pair-tile" id="pair-right" role="group" aria-label="Second choice"></div>
+              </div>
+            </div>
+            <div class="pair-controls pair-controls--hidden" id="pair-controls">
+              <p class="pair-hint" id="pair-hint">Tap a card, or press <kbd>1</kbd> / <kbd>2</kbd> · <kbd>Esc</kbd> to pause</p>
+              <button type="button" class="pair-skip" id="pair-cancel">
+                <span class="material-symbols-outlined" aria-hidden="true">fast_forward</span>
+                Skip for now
+              </button>
+            </div>
+          </main>
+        </div>
       </div>
-      <div class="brand">💖</div>
-    </header>
+    </section>
 
-    <div class="controls">
-      <button id="load-default">Load default</button>
-      <button id="save">Save</button>
-      <button id="pairwise">Pairwise rank</button>
-      <button id="share">Share</button>
-      <button id="export-json">Export JSON</button>
-      <button id="export-csv">Export CSV</button>
-      <label class="import-label">
-        Import
-        <input id="import-file" type="file" accept="application/json" hidden />
-      </label>
-      <div class="auto-save-indicator" id="auto-save-indicator">
-        <span class="save-status">Auto-save: ON</span>
-      </div>
-    </div>
+    <!-- Tab 2: Live favorites feed + tools -->
+    <section id="panel-favorites" class="tab-panel" role="tabpanel" aria-labelledby="tab-favorites-btn" data-tab-panel="favorites" hidden>
+      <main class="container favorites-container">
+        <header class="header">
+          <div>
+            <h1>Your favorites</h1>
+            <p class="lead">Live ranking — drag to tweak, or keep battling on the first tab.</p>
+          </div>
+          <div class="brand">💖</div>
+        </header>
 
-    <!-- Song List -->
-    <div class="song-list-container">
-      <h2>Your Songs</h2>
-      <ul id="song-list" class="song-list">
-        <!-- Songs will be populated here -->
-      </ul>
-    </div>
+        <div class="controls">
+          <button type="button" id="load-default">Load default</button>
+          <button type="button" id="save">Save</button>
+          <button type="button" id="share">Share</button>
+          <button type="button" id="export-json">Export JSON</button>
+          <button type="button" id="export-csv">Export CSV</button>
+          <label class="import-label">
+            Import
+            <input id="import-file" type="file" accept="application/json" hidden />
+          </label>
+          <div class="auto-save-indicator" id="auto-save-indicator">
+            <span class="save-status">Auto-save: ON</span>
+          </div>
+        </div>
 
-    <!-- Ranked Preview -->
-    <div class="ranked-preview" style="margin-top: 20px;">
-      <h3>Current Ranking</h3>
-      <ol id="ranked-list" class="ranked-list">
-        <!-- Ranked songs will be shown here -->
-      </ol>
-    </div>
+        <div class="favorites-feed-wrap">
+          <h2 class="favorites-feed-title">Live feed</h2>
+          <ol id="ranked-list" class="ranked-list ranked-list--feed" aria-live="polite">
+          </ol>
+        </div>
 
-    <div class="footer">
-      <small>Tip: drag to reorder, double-click to rename, or use keyboard: focus + Up/Down to move.</small>
-    </div>
-  </main>
+        <div class="song-list-container">
+          <h2>Edit order</h2>
+          <ul id="song-list" class="song-list">
+          </ul>
+        </div>
 
-  <!-- decorative stickers for girly-glam theme -->
+        <div class="footer">
+          <small>Tip: drag to reorder, double-click a title to rename, or use keyboard: focus + Up/Down to move.</small>
+        </div>
+      </main>
+    </section>
+  </div>
+
+  <nav class="app-tabbar" role="tablist" aria-label="Main">
+    <button type="button" class="app-tab" role="tab" id="tab-battle-btn" aria-selected="true" aria-controls="panel-battle" data-tab="battle">
+      <span class="material-symbols-outlined app-tab-icon" aria-hidden="true">swords</span>
+      <span class="app-tab-label label-caps">Battle</span>
+    </button>
+    <button type="button" class="app-tab" role="tab" id="tab-favorites-btn" aria-selected="false" aria-controls="panel-favorites" data-tab="favorites">
+      <span class="material-symbols-outlined app-tab-icon" aria-hidden="true">favorite</span>
+      <span class="app-tab-label label-caps">Favorites</span>
+    </button>
+  </nav>
+
   <div class="stickers" aria-hidden="true">
     <img class="sticker" src="stickers/sticker-heart.svg" alt="" />
     <img class="sticker" src="stickers/sticker-star.svg" alt="" />
     <img class="sticker" src="stickers/sticker-music.svg" alt="" />
-  </div>
-
-  <div data-pairwise="overlay" class="pairwise-overlay" style="display:none" aria-hidden="true">
-    <div class="pairwise-shell">
-      <header class="pairwise-topbar">
-        <div class="pairwise-topbar-row">
-          <div class="pairwise-brand">
-            <span class="material-symbols-outlined pairwise-brand-icon" aria-hidden="true">history_edu</span>
-            <span class="pairwise-brand-title">The Archive</span>
-          </div>
-        </div>
-        <div class="pairwise-progress-block">
-          <div class="pair-progress-wrap" id="pair-progress-wrap" role="progressbar" aria-valuemin="0" aria-valuemax="100">
-            <div class="pair-progress" id="pair-progress" style="width:0%"></div>
-          </div>
-          <div class="pairwise-progress-label label-caps" id="pair-progress-label">0% ranked</div>
-        </div>
-      </header>
-      <main class="pairwise-main">
-        <div class="pairwise-pill label-caps" id="pair-ranked-pill">
-          <span class="material-symbols-outlined" aria-hidden="true">bar_chart</span>
-          <span id="pair-ranked-text">Ranked 0 songs</span>
-        </div>
-        <div class="pairwise-prompt">
-          <h2 class="pairwise-headline">Choose your favorite</h2>
-          <p class="pairwise-sub">Select the song that resonates more deeply</p>
-        </div>
-        <div class="pairwise-cards">
-          <div class="pair-tile-wrap">
-            <div class="pair-tile" id="pair-left" role="group" aria-label="First choice"></div>
-          </div>
-          <div class="pair-vs" aria-hidden="true">
-            <span class="pair-vs-line"></span>
-            <span class="pair-vs-badge label-caps">VS</span>
-            <span class="pair-vs-line"></span>
-          </div>
-          <div class="pair-tile-wrap">
-            <div class="pair-tile" id="pair-right" role="group" aria-label="Second choice"></div>
-          </div>
-        </div>
-        <div class="pair-controls">
-          <div class="pair-counter label-caps" id="pair-counter">Comparisons: 0</div>
-          <p class="pair-hint" id="pair-hint">Tap a card, or press <kbd>1</kbd> / <kbd>2</kbd> · <kbd>Esc</kbd> to pause</p>
-          <button type="button" class="pair-skip" id="pair-cancel">
-            <span class="material-symbols-outlined" aria-hidden="true">fast_forward</span>
-            Skip for now
-          </button>
-        </div>
-      </main>
-    </div>
   </div>
 
   <script src="app.js"></script>
