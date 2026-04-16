@@ -4,45 +4,192 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Taylor Swift Song Ranker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600&family=Noto+Serif:ital,wght@0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <main class="container">
-    <header class="header">
-      <div>
-        <h1>Taylor Swift Song Ranker</h1>
-        <p class="lead">Give your favorite songs cute rankings — drag, drop, and share.</p>
+  <div class="app-shell">
+    <!-- Tab 1: Battle (default) — pairwise across all eras -->
+    <section id="panel-battle" class="tab-panel tab-panel--active" role="tabpanel" aria-labelledby="tab-battle-btn" data-tab-panel="battle">
+      <div data-pairwise="root" class="battle-root">
+        <div class="pairwise-shell">
+          <header class="pairwise-topbar">
+            <div class="pairwise-topbar-row">
+              <div class="pairwise-brand">
+                <span class="material-symbols-outlined pairwise-brand-icon" aria-hidden="true">history_edu</span>
+                <span class="pairwise-brand-title">The Archive</span>
+              </div>
+            </div>
+            <div class="pairwise-progress-block">
+              <div class="pair-progress-wrap" id="pair-progress-wrap" role="progressbar" aria-valuemin="0" aria-valuemax="100">
+                <div class="pair-progress" id="pair-progress" style="width:0%"></div>
+              </div>
+              <div class="pairwise-progress-label label-caps" id="pair-progress-label">0%</div>
+            </div>
+          </header>
+          <main class="pairwise-main">
+            <div class="pairwise-pill label-caps" id="pair-ranked-pill">
+              <span class="material-symbols-outlined" aria-hidden="true">bar_chart</span>
+              <span id="pair-ranked-text">0 matchups completed</span>
+            </div>
+            <div class="pairwise-prompt">
+              <h2 class="pairwise-headline">Choose your favorite</h2>
+              <p class="pairwise-sub" id="pairwise-sub">One continuous ranking across every era — tap the song you love more.</p>
+            </div>
+            <div class="pairwise-idle" id="pairwise-idle">
+              <p class="pairwise-idle-text">Pick your favorite in each matchup. Songs are paired by skill level so every pick counts. Pause anytime — your progress is saved automatically.</p>
+              <button type="button" class="pairwise-start-btn" id="start-battle">Start ranking</button>
+            </div>
+            <div class="pairwise-cards pairwise-cards--hidden" id="pairwise-cards" aria-live="polite">
+              <div class="pair-tile-wrap">
+                <div class="pair-tile" id="pair-left" role="group" aria-label="First choice"></div>
+              </div>
+              <div class="pair-vs" aria-hidden="true">
+                <span class="pair-vs-line"></span>
+                <span class="pair-vs-badge label-caps">VS</span>
+                <span class="pair-vs-line"></span>
+              </div>
+              <div class="pair-tile-wrap">
+                <div class="pair-tile" id="pair-right" role="group" aria-label="Second choice"></div>
+              </div>
+            </div>
+            <div class="pair-controls pair-controls--hidden" id="pair-controls">
+              <p class="pair-hint" id="pair-hint">Tap a card, or press <kbd>1</kbd> / <kbd>2</kbd> · <kbd>Esc</kbd> to pause &amp; resume later</p>
+              <button type="button" class="pair-skip" id="pair-cancel">
+                <span class="material-symbols-outlined" aria-hidden="true">fast_forward</span>
+                Skip for now
+              </button>
+            </div>
+          </main>
+        </div>
       </div>
-      <div class="brand">💖</div>
-    </header>
+    </section>
 
-    <div class="controls">
-      <button id="load-default">Load default</button>
-      <button id="save">Save</button>
-      <button id="pairwise">Pairwise rank</button>
-  <button id="share">Share</button>
-  <button id="export-json">Export JSON</button>
-  <button id="export-csv">Export CSV</button>
-      <label class="import-label">
-        Import
-        <input id="import-file" type="file" accept="application/json" hidden />
-      </label>
-    </div>
+    <!-- Tab 2: Live favorites feed + tools -->
+    <section id="panel-favorites" class="tab-panel" role="tabpanel" aria-labelledby="tab-favorites-btn" data-tab-panel="favorites" hidden>
+      <div class="fav-root">
+        <div class="fav-shell">
+          <header class="fav-topbar">
+            <div class="fav-topbar-row">
+              <div class="fav-brand">
+                <span class="material-symbols-outlined fav-brand-icon" aria-hidden="true">favorite</span>
+                <span class="fav-brand-title">Your Favorites</span>
+              </div>
+              <div class="auto-save-indicator" id="auto-save-indicator">
+                <span class="save-status">Auto-save: ON</span>
+              </div>
+            </div>
+            <p class="fav-subtitle">Live ranking — drag to tweak, or keep battling on the first tab.</p>
+          </header>
 
-    <ul id="song-list" class="song-list" aria-label="Song ranking"></ul>
+          <main class="fav-main">
+            <div class="fav-actions">
+              <button type="button" class="fav-action-btn" id="load-default">
+                <span class="material-symbols-outlined" aria-hidden="true">restart_alt</span>
+                Reset list
+              </button>
+              <button type="button" class="fav-action-btn" id="save">
+                <span class="material-symbols-outlined" aria-hidden="true">save</span>
+                Save
+              </button>
+            </div>
 
-    <div class="footer">
-      <small>Tip: drag to reorder, double-click to rename, or use keyboard: focus + Up/Down to move.</small>
-    </div>
-  </main>
+            <div class="fav-share-section">
+              <h3 class="fav-section-heading">
+                <span class="material-symbols-outlined" aria-hidden="true">share</span>
+                Share &amp; Export
+              </h3>
+              <div class="fav-share-grid">
+                <button type="button" class="fav-share-btn fav-share-btn--link" id="share">
+                  <span class="material-symbols-outlined" aria-hidden="true">link</span>
+                  <span class="fav-share-label">Copy link</span>
+                </button>
+                <button type="button" class="fav-share-btn fav-share-btn--text" id="share-text">
+                  <span class="material-symbols-outlined" aria-hidden="true">content_copy</span>
+                  <span class="fav-share-label">Copy text</span>
+                </button>
+                <button type="button" class="fav-share-btn fav-share-btn--pdf" id="export-pdf">
+                  <span class="material-symbols-outlined" aria-hidden="true">picture_as_pdf</span>
+                  <span class="fav-share-label">Download PDF</span>
+                </button>
+                <button type="button" class="fav-share-btn fav-share-btn--json" id="export-json">
+                  <span class="material-symbols-outlined" aria-hidden="true">data_object</span>
+                  <span class="fav-share-label">Export JSON</span>
+                </button>
+                <button type="button" class="fav-share-btn fav-share-btn--csv" id="export-csv">
+                  <span class="material-symbols-outlined" aria-hidden="true">table_chart</span>
+                  <span class="fav-share-label">Export CSV</span>
+                </button>
+                <button type="button" class="fav-share-btn fav-share-btn--native" id="share-native">
+                  <span class="material-symbols-outlined" aria-hidden="true">ios_share</span>
+                  <span class="fav-share-label">Share...</span>
+                </button>
+              </div>
+            </div>
 
-  <!-- decorative stickers for girly-glam theme -->
+            <div class="era-card-section" id="era-card-section" style="display:none">
+              <h3 class="fav-section-heading">
+                <span class="material-symbols-outlined" aria-hidden="true">id_card</span>
+                Your Eras Identity
+              </h3>
+              <canvas id="era-card-preview" class="era-card-preview"></canvas>
+              <div class="era-card-actions">
+                <button type="button" class="fav-action-btn" id="download-era-card">
+                  <span class="material-symbols-outlined" aria-hidden="true">download</span>
+                  Download
+                </button>
+                <button type="button" class="fav-action-btn" id="share-era-card">
+                  <span class="material-symbols-outlined" aria-hidden="true">ios_share</span>
+                  Share
+                </button>
+              </div>
+            </div>
+
+            <div class="fav-feed-section">
+              <h3 class="fav-section-heading">
+                <span class="material-symbols-outlined" aria-hidden="true">bar_chart</span>
+                Live feed
+              </h3>
+              <ol id="ranked-list" class="ranked-list ranked-list--feed" aria-live="polite">
+              </ol>
+            </div>
+
+            <div class="fav-edit-section">
+              <h3 class="fav-section-heading">
+                <span class="material-symbols-outlined" aria-hidden="true">edit_note</span>
+                Edit order
+              </h3>
+              <p class="fav-edit-hint">Drag to reorder, double-click a title to rename, or use <kbd>↑</kbd> / <kbd>↓</kbd> keys.</p>
+              <ul id="song-list" class="song-list">
+              </ul>
+            </div>
+          </main>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <nav class="app-tabbar" role="tablist" aria-label="Main">
+    <button type="button" class="app-tab" role="tab" id="tab-battle-btn" aria-selected="true" aria-controls="panel-battle" data-tab="battle">
+      <span class="material-symbols-outlined app-tab-icon" aria-hidden="true">swords</span>
+      <span class="app-tab-label label-caps">Battle</span>
+    </button>
+    <button type="button" class="app-tab" role="tab" id="tab-favorites-btn" aria-selected="false" aria-controls="panel-favorites" data-tab="favorites">
+      <span class="material-symbols-outlined app-tab-icon" aria-hidden="true">favorite</span>
+      <span class="app-tab-label label-caps">Favorites</span>
+    </button>
+  </nav>
+
   <div class="stickers" aria-hidden="true">
     <img class="sticker" src="stickers/sticker-heart.svg" alt="" />
     <img class="sticker" src="stickers/sticker-star.svg" alt="" />
     <img class="sticker" src="stickers/sticker-music.svg" alt="" />
   </div>
 
+  <script src="era-identity.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
